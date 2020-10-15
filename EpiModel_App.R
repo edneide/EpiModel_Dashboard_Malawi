@@ -3,7 +3,7 @@ library(shinydashboard)
 library(readr)
 library(plotly)
 
-setwd("~/Documents/GitHub/EpiModel_Dashboard")
+setwd("~/Documents/GitHub/EpiModel_Dashboard_Malawi")
 
 ui <- fluidPage(
   # fluid row 
