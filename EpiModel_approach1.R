@@ -14,31 +14,30 @@ ui <- fluidPage(
     titlePanel(tags$h1("Epidemiological model for COVID-19 - Malawi")),
     column(width = 6,
            plotlyOutput("fig"),
-           "Example of graph at national level"
+           "Graph at national level"
     ),
     column(width = 6,
            tags$h1("Policy Levers"),
            tags$hr(),
            column(width = 4.0, tags$h5("% Masking"),
-                  numericInput('mask_perc', 
-                               label = "New %",
-                               value = 0, 
-                               min = 0,
-                               max = 100),
+                  # numericInput('mask_perc', 
+                  #              label = "New %",
+                  #              value = 0, 
+                  #              min = 0,
+                  #              max = 100),
+                  selectInput("masking", "New %", choices = c("15%", "30%", "45%")),
                   # Length of Intervention # Days
-                  numericInput('time_intervention_mask',
-                               label = "Length of Intervention\n(# Days)",
-                               value = 0)
+                  # numericInput('time_intervention_mask',
+                  #              label = "Length of Intervention\n(# Days)",
+                  #              value = 0)
            ),
            column(width = 4.0, tags$h5("% Physical Distancing"),
-                  numericInput('distancing_perc',
+                  selectInput('distancing_perc',
                                label = "New %",
-                               value = 0,
-                               min = 0,
-                               max = 100),
-                  numericInput('time_intervention_dist',
-                               label = "Length of Intervention\n(# Days)",
-                               value = 0)
+                              choices = c("8%", "20%"))
+                  # numericInput('time_intervention_dist',
+                  #              label = "Length of Intervention\n(# Days)",
+                  #              value = 0)
            )
     )
   ),#end fluid row
