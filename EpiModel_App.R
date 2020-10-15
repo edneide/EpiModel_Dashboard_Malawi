@@ -3,17 +3,18 @@ library(shinydashboard)
 library(readr)
 library(plotly)
 
+#--Setting the work directory
 setwd("~/Documents/GitHub/EpiModel_Dashboard_Malawi")
 
+##--------##
+##---UI---##
+##--------##
 ui <- fluidPage(
-  # fluid row 
-  # fluidRow(
-  #   column(width = 4, offset = 6, tags$h1("Policy Levers"), tags$hr()),
-  # ),
   fluidRow(
+    titlePanel(tags$h1("Epidemiological model for COVID-19 - Malawi")),
            column(width = 6,
-                  "Example of graph at national level",
-                  plotlyOutput("fig")
+                  plotlyOutput("fig"),
+                  "Example of graph at national level"
            ),
            column(width = 6,
                   tags$h1("Policy Levers"),
@@ -58,6 +59,10 @@ ui <- fluidPage(
   )
 ) #--end fluid page--##
 
+
+##------------##
+##---Server---##
+##------------##
 server <- function(input, output, session) {
   current_v2_stacked <- read_csv("current v2_stacked.csv")
   data <- current_v2_stacked
@@ -65,7 +70,7 @@ server <- function(input, output, session) {
     dplyr::select(time, Total_Exposed, Total_Infected,
                   Total_Hospitalizations, Total_Critical,
                   Total_Recovered, Total_Dead)
-  
+  ##--Plot--##
   output$fig <- renderPlotly({
     fig <-  plot_ly(data_total, 
                     x = ~ time, 
@@ -86,6 +91,7 @@ server <- function(input, output, session) {
     
   })
   
+  ##--Table--##
   output$table <- DT::renderDT(
     DT::datatable(
       {data},
