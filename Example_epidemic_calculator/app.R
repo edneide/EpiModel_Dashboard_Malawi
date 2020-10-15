@@ -1,5 +1,5 @@
 #
-# Calculadora epidêmica
+# Epidemic calculator
 #
 #
 
@@ -22,22 +22,24 @@ library(epitrix)
 library(projections)
 library(scales)
 
-# Define UI for application that draws a histogram
+##-----##
+#--ui--##
+##-----##
 ui <- fluidPage(
   
 tabsetPanel(
-  tabPanel("Início", 
+  tabPanel("Home", 
   
 
   # Application title
-  tags$h1("Calculadora Epidêmica"),
+  tags$h1("Epidemic Calculator"),
   
   fluidRow(
     
     column(12,
   # Application title
   #titlePanel("Calculadora Epidêmica"),
-  ## Texto ##
+  ##--Text--##
   tags$p(
     "Esta calculadora implementa o modelo compartimental clássico para doenças 
     infecciosas, chamado modelo", tags$strong("SEIR:")
@@ -86,7 +88,7 @@ tabsetPanel(
     ## Coluna 1
     column(2,
            tags$h2(withMathJax(sprintf("Parâmetros populacionais e $R_0$"))),
-           sliderInput(inputId = "N", label = "Tamanho da população", value = 1000, min = 1000, max = 1500000000, step = 2000),
+           numericInput(inputId = "N", label = "Tamanho da população", value = 1000, min = 1000, max = 1500000000),
            sliderInput(inputId = "I0", label = "Número inicial de infectados", value = 1, min = 1, max = 1000),
            sliderInput(inputId = "Rt", label = withMathJax(sprintf("Número Reprodutivo básico $R_0$")), value = 2.2, min = 0.01, max = 10, step = 0.01)
            
@@ -159,7 +161,7 @@ tabsetPanel(
   ), # fim da tabPanel1 
   
   # Segunda aba
-  tabPanel("Sobre o modelo", 
+  tabPanel("About the model", 
            
            fluidRow(
              
