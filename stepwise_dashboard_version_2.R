@@ -2,10 +2,10 @@ library(shiny)
 library(readr)
 library(plotly)
 library(DT)
-#library(lubridate)
+library(lubridate)
 library(shinythemes)
 library(tidyverse)
-#library(dplyr)
+
 
 #--Set wd
 setwd("~/Google Drive/Coronavirus/Malawi-covid_19/Dados_Att_e_Modelos/Malawi-COVID-Epidemiological-Model/Malawi-COVID-Epidemiological-Model-master")
