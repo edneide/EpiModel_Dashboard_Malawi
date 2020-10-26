@@ -8,15 +8,16 @@ library(tidyverse)
 
 
 #--Set wd
+#--Set the appropriate wd here
 setwd("~/Google Drive/Coronavirus/Malawi-covid_19/Dados_Att_e_Modelos/Malawi-COVID-Epidemiological-Model/Malawi-COVID-Epidemiological-Model-master")
 
-##--Loading masking dataframe for baseline simulations 
+##--Loading dataframes from baseline simulations 
 masking <- read_csv("baseline_simulation/masking.csv")
 current <- read_csv("baseline_simulation/current.csv", 
                     col_types = cols(date = col_date(format = "%Y-%m-%d")))
-df_country_baseline_dash <- read_csv("baseline_simulation/df_country_baseline_dash.csv")
-df_district_baseline_dash <- read_csv("baseline_simulation/districts_dash_baseline.csv")
-df_ta_baseline_dash <- read_csv("baseline_simulation/df_ta_baseline_dash.csv")
+df_country_baseline_dash <- read_csv("baseline_simulation/df_country_baseline_dash.csv") #--Result of baseline simulation - Country
+df_district_baseline_dash <- read_csv("baseline_simulation/districts_dash_baseline.csv") #--Result of baseline simulation - District
+df_ta_baseline_dash <- read_csv("baseline_simulation/df_ta_baseline_dash.csv") #--Result of baseline simulation - TA
 
 
 ##--------##
@@ -631,8 +632,7 @@ output$fig <- renderPlotly({
                       type = 'bar',
                       name = 'Death')
       fig <- fig %>% layout(xaxis = list(title = "Time (days)"),
-                            yaxis = list(title = ''),
-                            barmode = 'stack')
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU')
       fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations')
       fig <- fig %>% add_trace(y = ~ Cases, name = 'Cases')
@@ -644,11 +644,11 @@ output$fig <- renderPlotly({
       fig <-  plot_ly(data_final_plot(),
                       x = ~ time,
                       y = ~ Death_sim,
-                      type = 'bar',
+                      type = 'scatter',
+                      mode = 'lines',
                       name = 'Death (simulation)')
       fig <- fig %>% layout(xaxis = list(title = "Time (days)"),
-                            yaxis = list(title = ''),
-                            barmode = 'stack')
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Death, name = 'Death')
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (simulation)')
       fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU')
