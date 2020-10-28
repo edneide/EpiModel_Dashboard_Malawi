@@ -75,14 +75,14 @@ ui <- fluidPage(theme = shinytheme("united"),
                                           label = "Length of Intervention\n(# Days)",
                                           value = 7,
                                           min = 7,
-                                          max = 180)
+                                          max = 50)
                       ),
                       column(width = 4.0, tags$h3("% Physical Distancing"),
                              tags$h4(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
                              numericInput('distancing_perc',
                                           label = "New %",
                                           value = 8,
-                                          min = 0,
+                                          min = 8,
                                           max = 100),
                              numericInput('time_intervention_dist',
                                           label = "Length of Intervention\n(# Days)",
@@ -185,6 +185,40 @@ ui <- fluidPage(theme = shinytheme("united"),
 
 ##--Server
 server <- function(input, output, session) {
+  
+  #--Creating the inputs .csv's based on user's selection 
+  
+  maskdatasetInput <- observe({
+    
+    if(input$runreportButton == 0) return()
+    
+    masking_new <- masking %>% 
+      mutate(
+        masking_compliance2 = ifelse(date < today(), masking_compliance,
+                                     ifelse(between(date, today(), today() + days(input$time_intervention_mask-1)),
+                                            input$mask_perc/100, masking_compliance))
+      )
+    
+    write.csv(data.frame(masking_compliance = masking_new$masking_compliance2),
+              "inputs/masking/masking_compliance_new.csv", row.names = FALSE)
+    
+  })
+  
+  ##--##
+  maskdatasetInput <- observe({
+    
+    if(input$runreportButton == 0) return()
+    
+    current <- current %>% 
+      mutate(reduc_new = ifelse(date < today(), reduc, 
+                                ifelse(between(date, today(), today() +
+                                                 days(input$time_intervention_dist - 1)),
+                                       input$distancing_perc/100, reduc)))
+    write.csv(data.frame(reduc = current$reduc_new), 
+              "inputs/reductionScenarios/current_new.csv", 
+              row.names = FALSE)
+  })
+  ##--##
   
   ##-----------------------##
   ##--Simulation Function--##
