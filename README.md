@@ -1,4 +1,4 @@
-# EpiModel_Dashboard_Malawi
+# EpiModel Dashboard Malawi (COVID-19)
 
 This is a **Shiny application** for a COVID-19 epidemiological model for Malawi.
 
