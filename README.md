@@ -10,7 +10,7 @@ In this section of the dashboard, the user can set a new percentage for masking 
 
 ## Model Priors
 
-This section shows the parameters used in the epidemiological model simulation, and are derived from scientific literature and data from Malawi. These parameters refer to the basic reproduction number $R_0$, Infectious Time (Days), Hospitalized Time (Days), and ICU Time (Days). The Hospitalized Rate of Infected, ICU Risk Among Hospitalized, and Fatality Rate of ICU are presented for different age groups: Pediatrics, Adults, and Elderly.
+This section shows the parameters used in the epidemiological model simulation, and are derived from scientific literature and data from Malawi. These parameters refer to the basic reproduction number R0, Infectious Time (Days), Hospitalized Time (Days), and ICU Time (Days). The Hospitalized Rate of Infected, ICU Risk Among Hospitalized, and Fatality Rate of ICU are presented for different age groups: Pediatrics, Adults, and Elderly.
 
 ## Outputs
 
