@@ -6,6 +6,7 @@ library(DT)
 library(lubridate)
 library(shinythemes)
 library(tidyverse)
+library(scales)
 
 
 ##--Loading dataframes for baseline simulations 
@@ -74,29 +75,39 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                         min = 7,
                                                         max = 180)
                                     ),
-                             ),
-                             column(width = 5,
                                     column(width = 4,
                                            #--Time Horizon Projection
-                                           numericInput('projection', 'Time Horizon Projection (days)', 
-                                                        value = 3, min = 1, max = 180)
-                                    ),
-                                    column(width = 4,
-                                           selectInput('level', 'Level of Interest', choices = c("National", "District", "TA"))
-                                           )
+                                            numericInput('projection', 'Time Horizon Projection (days)',
+                                                         value = 3, min = 1, max = 180),
                                            
+                                           selectInput('level', 'Level of Interest', choices = c("National", "District", "TA")),
+                                           
+                                           actionButton("runreportButton", "Run Report", width = '250'
+                                                        )
+                                           )
                              ),
-
-                             column(width = 5, 
-                                    # #--Include actionButton to run the report
-                                    column(width = 4, offset = 2,
-                                           actionButton("runreportButton", "Run Report", width = '300px')
-                                    )
-                                    ),
+                             # column(width = 5,
+                             #        column(width = 4,
+                             #               #--Time Horizon Projection
+                             #               numericInput('projection', 'Time Horizon Projection (days)', 
+                             #                            value = 3, min = 1, max = 180)
+                             #        ),
+                             #        column(width = 4,
+                             #               selectInput('level', 'Level of Interest', choices = c("National", "District", "TA"))
+                             #               )
+                             #               
+                             # ),
+# 
+#                              column(width = 5, 
+#                                     # #--Include actionButton to run the report
+#                                     column(width = 4, offset = 2,
+#                                            actionButton("runreportButton", "Run Report", width = '300px')
+#                                     )
+#                                     ),
                             
                              column(width = 5,
                                     # Model Priors
-                                    strong("Model Priors"),
+                                    strong("Fixed Model Parameters"),
                                     tags$hr(),
                                     column(width = 3.0, 
                                            tags$p(strong("R0:"), "1.9"),
@@ -133,23 +144,19 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     tableOutput('table_reductions_country_abs'),
                                     h5(strong("Percentual reduction due to implemented measures:")),
                                     tableOutput('table_reductions_country')
-                                    )
-                           ),##--end of FluidRow
-                           
-                           fluidRow(
-                             column(width = 6, 
-                                    " "
-                             ),
-                             
-                           ),
-                           ##-----##
-                           tags$hr(),
-                           tags$p(
-                             paste("Generated results:", today())
-                           ),
-                           fluidRow(
-                             DT::DTOutput('table_national')
-                           )
+                                    ),
+                            column(width = 12,
+                                   paste("Generated results:", today()),
+                                   DT::DTOutput('table_national')
+                                   )
+                           )##--end of FluidRow
+      
+                           ##---TABLE--##
+                           # tags$hr(),
+                           # fluidRow(
+                           #   paste("Generated results:", today()),
+                           #   DT::DTOutput('table_national')
+                           # )
                   ), ##--end National
                   
                   ##--District
@@ -186,11 +193,8 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     tableOutput('table_reductions_districts')
                              )
                            ),
-                           tags$hr(),
                            tags$p(
-                             paste("Generated results:", today())
-                           ),
-                           fluidRow(
+                             paste("Generated results:", today()),
                              DT::DTOutput('table_district')
                            )
                   ), ##--end Panel district
@@ -228,11 +232,8 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     tableOutput('table_reductions_ta_perc')
                              )
                            ),
-                           tags$hr(),
                            tags$p(
-                             paste("Generated results:", today())
-                           ),
-                           fluidRow(
+                             paste("Generated results:", today()),
                              DT::DTOutput('table_ta')
                            )
                   )##--end panel TA
@@ -878,7 +879,8 @@ server <- function(input, output, session) {
                                Severe_sq = Severe_ta)
     ##-------------------------##
     projection_ta_sq <- simulation_ta_sq[,-2] %>% 
-      filter(date == lubridate::today() + lubridate::days(input$projection))
+      filter(date == lubridate::today() + lubridate::days(input$projection)) %>% 
+      select(date, Cases_sq:Death_sq)
     names(projection_ta_sq) <- c("date", "Cases (status quo projection)",
                                  "Hosp. (status quo projection)",
                                  "Critical (status quo projection)",
@@ -886,7 +888,8 @@ server <- function(input, output, session) {
     
     ##-------------------------##
     to_date_ta_sq <- simulation_ta_sq[,-2] %>% 
-      filter(date == lubridate::today())
+      filter(date == lubridate::today()) %>% 
+      select(date, Cases_sq:Death_sq)
     names(to_date_ta_sq) <- c("date", "Cases (to date)",
                               "Hosp. (to date)",
                               "Critical (date)",
@@ -904,23 +907,32 @@ server <- function(input, output, session) {
   output$fig <- renderPlotly({
     
     if(input$runreportButton == 0) return()
+    # tcases <- list(
+    #   family = "sans serif",
+    #   size = 14,
+    #   color = 'red')
     data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
     fig <-  plot_ly(data_final_plot,
                     x = ~ date,
                     y = ~ Cases_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Cases',
-                    line = list(color = 'red'))
+                    name = 'Status Quo',
+                    line = list(color = 'red'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
+    fig <- fig %>% layout(
+      title = "<b>Cases</b>"
+    )
     #fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Death_sim', line = list(color = 'grey'))
     #fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
     #fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU_sim', line = list(color = 'lightblue'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hospitalizations_sim', line = list(color = 'rgb(204,255,204)'))
     #fig <- fig %>% add_trace(y = ~ Cases_sq, name = 'Cases', line = list(color = 'red'))
-    fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Cases (sim)', line = list(color = 'pink'))
+    fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'pink'))
     fig
   })
   
@@ -934,11 +946,16 @@ server <- function(input, output, session) {
                     y = ~ Severe_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Severe cases',
-                    line = list(color = 'orange'))
+                    name = 'Status Quo',
+                    line = list(color = 'orange'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Severe_sim, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+    fig <- fig %>% add_trace(y = ~ Severe_sim, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
+    fig <- fig %>% layout(
+      title = "<b>Severe Cases</b>"
+    )
     fig
   })
   
@@ -952,14 +969,19 @@ server <- function(input, output, session) {
                     y = ~ Hospitalizations_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Hospitalizations',
-                    line = list(color = 'rgb(0, 102, 0)'))
+                    name = 'Hosp. (Status Quo)',
+                    line = list(color = 'rgb(0, 102, 0)'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hospitalizations (sim)', line = list(color = 'rgb(204,255,204)'))
-    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
-    fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (sim)', line = list(color = 'lightblue'))
+    fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
+    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
+    fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
+    fig <- fig %>% layout(
+      title = "<b>Hospitalizations and ICU</b>"
+    )
     fig
   })
   
@@ -973,11 +995,16 @@ server <- function(input, output, session) {
                     y = ~ Death_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Death',
-                    line = list(color = 'black'))
+                    name = 'Status Quo',
+                    line = list(color = 'black'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Death (sim)', line = list(color = 'grey'))
+    fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
+    fig <- fig %>% layout(
+      title = "<b>Deaths</b>"
+    )
     fig
   })
   
@@ -997,9 +1024,14 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Cases',
-                    line = list(color = 'red'))
+                    line = list(color = 'red'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
+    fig <- fig %>% layout(
+      title = "<b>Cases</b>"
+    )
     #fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
     #fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
     #fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
@@ -1022,10 +1054,15 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Severe cases',
-                    line = list(color = 'orange'))
+                    line = list(color = 'orange'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+    fig <- fig %>% layout(
+      title = "<b>Severe Cases</b>"
+    )
     fig
   })
   
@@ -1041,12 +1078,17 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Hospitalizations',
-                    line = list(color = 'rgb(0, 102, 0)'))
+                    line = list(color = 'rgb(0, 102, 0)'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (simulation)', line = list(color = 'rgb(204,255,204)'))
     fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
     fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
+    fig <- fig %>% layout(
+      title = "<b>Hospitalizations and ICU</b>"
+    )
     fig
   })
   
@@ -1062,11 +1104,15 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Death',
-                    line = list(color = 'black'))
+                    line = list(color = 'black'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
-
+    fig <- fig %>% layout(
+      title = "<b>Deaths</b>"
+    )
     fig
   })
   
@@ -1088,7 +1134,10 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Cases',
-                    line = list(color = 'red'))
+                    line = list(color = 'red'),
+                    width = 500,
+                    height = 250
+                    )
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     #fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
@@ -1098,6 +1147,9 @@ server <- function(input, output, session) {
     #fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (simulation)', line = list(color = 'rgb(204,255,204)'))
     #fig <- fig %>% add_trace(y = ~ Cases_sq, name = 'Cases', line = list(color = 'red'))
     fig <- fig %>% add_trace(y = ~ Cases, name = 'Cases (simulation)', line = list(color = 'pink'))
+    fig <- fig %>% layout(
+      title = "<b>Cases</b>"
+    )
     fig
   })
   
@@ -1115,12 +1167,16 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Severe cases',
-                    line = list(color = 'orange'))
+                    line = list(color = 'orange'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
     
-
+    fig <- fig %>% layout(
+      title = "<b>Severe Cases</b>"
+    )
     fig
   })
   
@@ -1138,13 +1194,18 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Hospitalizations',
-                    line = list(color = 'rgb(0, 102, 0)'))
+                    line = list(color = 'rgb(0, 102, 0)'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (sim)', line = list(color = 'rgb(204,255,204)'))
     fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
     fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
+    fig <- fig %>% layout(
+      title = "<b>Hospitalizations and ICU</b>"
+    )
     fig
   })
   
@@ -1162,10 +1223,15 @@ server <- function(input, output, session) {
                     type = 'scatter',
                     mode = 'lines',
                     name = 'Death',
-                    line = list(color = 'black'))
+                    line = list(color = 'black'),
+                    width = 500,
+                    height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
+    fig <- fig %>% layout(
+      title = "<b>Deaths</b>"
+    )
     fig
   })
   
@@ -1295,12 +1361,13 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       
       callback = JS('table.page("next").draw(false);'),
-      filter = 'top',
+      #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 10,
+        pageLength = 1,
         autoWidth = TRUE,
-        dom = 'Blfrtip', 
+        #dom = 'Blfrtip',
+        dom = 'Bt',
         buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
         # lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All")
         #                   )
@@ -1327,14 +1394,17 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       
       callback = JS('table.page("next").draw(false);'),
-      filter = 'top',
+      #filter = 'top',
       options = list(
         deferRender = TRUE,
         pageLength = 10,
         autoWidth = TRUE,
-        dom = 'Blfrtip', 
-        buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))))
+        #dom = 'Blfrtip', 
+        dom = 'Bt',
+        buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        #lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
+        )
+        )
   )
   
   ##------------##  
@@ -1356,14 +1426,17 @@ server <- function(input, output, session) {
       extensions = 'Buttons',
       
       callback = JS('table.page("next").draw(false);'),
-      filter = 'top',
+      #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 10,
+        pageLength = 1,
         autoWidth = TRUE,
-        dom = 'Blfrtip', 
-        buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))))
+        #dom = 'Blfrtip', 
+        dom = 'Bt',
+        buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        #lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
+        )
+        )
   )
 }##--end server
 
