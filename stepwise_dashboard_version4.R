@@ -16,6 +16,9 @@ current <- read_csv("current_with_date.csv",
 districts_names <- read_csv("districts_names.csv")
 ta_names <- read_csv("tas_names.csv")
 
+df_country_dash <- read_csv("df_country_dash_initial.csv")
+
+
 hosp_time <- 4
 crit_time <- 8
 
@@ -78,7 +81,9 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     column(width = 4,
                                            #--Time Horizon Projection
                                             numericInput('projection', 'Time Horizon Projection (days)',
-                                                         value = 3, min = 1, max = 180),
+                                                         value = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) , 
+                                                         min = 1, 
+                                                         max = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) ),
                                            
                                            selectInput('level', 'Level of Interest', choices = c("National", "District", "TA")),
                                            
@@ -964,106 +969,176 @@ server <- function(input, output, session) {
   #--Cases
   output$fig <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    # tcases <- list(
-    #   family = "sans serif",
-    #   size = 14,
-    #   color = 'red')
-    data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Cases_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'red'),
-                    width = 500,
-                    height = 250)
-    fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = ''))
-    fig <- fig %>% layout(
-      title = "<b>Cases</b>"
-    )
-    #fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Death_sim', line = list(color = 'grey'))
-    #fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
-    #fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU_sim', line = list(color = 'lightblue'))
-    #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
-    #fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hospitalizations_sim', line = list(color = 'rgb(204,255,204)'))
-    #fig <- fig %>% add_trace(y = ~ Cases_sq, name = 'Cases', line = list(color = 'red'))
-    fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'pink'))
-    fig
+    if(input$runreportButton == 0){
+      data_final_plot <- df_country_dash
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Cases_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'red'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% layout(
+        title = "<b>Cases</b>"
+      )
+      fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'pink'))
+      return(fig)
+    }else{
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Cases_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'red'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% layout(
+        title = "<b>Cases</b>"
+      )
+      fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'pink'))
+      return(fig)
+    } 
   })
   
   ##--Aggregated critical care, hospitalizations, deaths
   output$fig_country2 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Severe_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'orange'),
-                    width = 500,
-                    height = 250)
-    fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Severe_sim, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
-    fig <- fig %>% layout(
-      title = "<b>Severe Cases</b>"
-    )
-    fig
+    if(input$runreportButton == 0){
+      data_final_plot <- df_country_dash
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Severe_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Severe cases',
+                      line = list(color = 'orange'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+      fig <- fig %>% layout(
+        title = "<b>Severe Cases</b>"
+      )
+      return(fig)
+    }else{
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Severe_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'orange'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Severe_sim, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
+      fig <- fig %>% layout(
+        title = "<b>Severe Cases</b>"
+      )
+      return(fig)
+    } 
   })
   
   ##--Hospitalization and Critical Care
   output$fig_country3 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Hospitalizations_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Hosp. (Status Quo)',
-                    line = list(color = 'rgb(0, 102, 0)'),
-                    width = 500,
-                    height = 250)
-    fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
-    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
-    fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
-    #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
-    fig <- fig %>% layout(
-      title = "<b>Hospitalizations and ICU</b>"
-    )
-    fig
+    if(input$runreportButton == 0){
+      data_final_plot <- df_country_dash
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Hospitalizations_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Hosp. (Status Quo)',
+                      line = list(color = 'rgb(0, 102, 0)'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
+      fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
+      fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
+      fig <- fig %>% layout(
+        title = "<b>Hospitalizations and ICU</b>"
+      )
+      fig
+      return(fig)
+    }else{
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Hospitalizations_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Hosp. (Status Quo)',
+                      line = list(color = 'rgb(0, 102, 0)'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
+      fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
+      fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
+      #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
+      fig <- fig %>% layout(
+        title = "<b>Hospitalizations and ICU</b>"
+      )
+      return(fig)
+    }
+    
   })
   
   ##--Deaths
   output$fig_country4 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Death_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'black'),
-                    width = 500,
-                    height = 250)
-    fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
-    fig <- fig %>% layout(
-      title = "<b>Deaths</b>"
-    )
-    fig
+    if(input$runreportButton == 0){
+      data_final_plot <- df_country_dash
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Death_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'black'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
+      fig <- fig %>% layout(
+        title = "<b>Deaths</b>"
+      )
+      return(fig)
+    } else{
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Death_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'black'),
+                      width = 500,
+                      height = 250)
+      fig <- fig %>% layout(xaxis = list(title = "Date"),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
+      fig <- fig %>% layout(
+        title = "<b>Deaths</b>"
+      )
+      return(fig)
+    }
   })
   
   ##-----------------##
@@ -1090,12 +1165,6 @@ server <- function(input, output, session) {
     fig <- fig %>% layout(
       title = "<b>Cases</b>"
     )
-    #fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
-    #fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
-    #fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
-    #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
-    #fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (simulation)', line = list(color = 'rgb(204,255,204)'))
-    #fig <- fig %>% add_trace(y = ~ Cases_sq, name = 'Cases', line = list(color = 'red'))
     fig <- fig %>% add_trace(y = ~ Cases, name = 'Cases (simulation)', line = list(color = 'pink'))
     fig
   })
