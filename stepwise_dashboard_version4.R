@@ -236,9 +236,67 @@ ui <- fluidPage(theme = shinytheme("united"),
                              paste("Generated results:", today()),
                              DT::DTOutput('table_ta')
                            )
-                  )##--end panel TA
-                )##--end tabsetPanel
-)##--end UI
+                  ), ##--end panel TA
+
+              ##--More Information
+              tabPanel("More Information",
+                       fluidRow(titlePanel(strong("More Information")),
+                                
+                                tags$p("The user can set four parameters: the masking percentage, the length of masking intervention,
+                                       the physical distancing percentage, and length of the distancing intervention."),
+                                tags$p("It is also possible to set the time horizon for the projections."),
+                                
+                                tags$p("Some parameters are fixed:"),
+              
+                                column(11, offset = 0.75,
+      
+                                       tags$div(
+                                         tags$ul(
+                                          tags$li(strong("R0:"), "is the basic reproduction number"),
+                                          tags$li("The Infectious Time in Days"),
+                                          tags$li("The Hospitalized Time in Days"),
+                                          tags$li("The ICU Time in Days"),
+                                          tags$li("The ICU Risk Among Hospitalized: this parameter is different 
+                                                  for each age class considered (Pediatrics, Adults, and Elderly)"),
+                                          tags$li("Hospitalized Rate of Infection: this parameter is different 
+                                                  for each age class considered (Pediatrics, Adults, and Elderly)"),
+                                          tags$li("The Fatality Rate of ICU: this parameter is different 
+                                                  for each age class considered (Pediatrics, Adults, and Elderly)"),
+                      
+                                         )
+                                       )
+                                )
+
+                                ),##--end of fluidRow
+                       fluidRow(
+                         tags$p("Once the parameters are set, the user can click on the Run Report button to
+                         execute the simulation.
+                         The first result is presented as four plots showing the disease dynamic for the baseline status quo simulation, i. e.,
+                         when there is no control meausres applied,
+                         and the intervention simulation. 
+                         
+                         Both simulations are run for 365 days, going from April 1st, 2020 until March 3rd, 2021. 
+                        
+                        The first graph shows the cumulative cases, the second shows the cumulative severe cases 
+                         (the sum of hospitalizations, ICU and death), the third plot shows the cumulative hospitalizations and ICU,
+                         and the fourth graph shows the cumulative deaths. By moving the mouse over the graphs it is possible to see
+                         the corresponding numbers.
+                         Below the graph, two tables are showing the potential reductions achieved due to the implemented measures. 
+                         The first table Absolute reduction to implemented measures show the potential reductions in the number of cases, hospitalizations, ICU, and deaths. The second table Percentual reduction due to implemented measures show the same quantities but in percentage. Those comparisons are made using the values from the simulation projection and the status quo projection.
+                         At the bottom of the dashboard, the user can find a table showing 
+                                the current and future situations. The first four columns refer to the 
+                                current situation and are named as Cases (to date), Hosp. (to date), 
+                                ICU (to date), Death (to date). The other eight columns refer to projections. 
+                                There is the status quo projections, which means that no control measure was 
+                                taken, named as Cases (status quo), Hosp. (status quo), ICU (status quo), 
+                                Death (status quo), and the simulation projection, that take into account 
+                                the control measures set by the user, named as Cases (simulation projection), 
+                                Hosp. (simulation projection), ICU (simulation projection), 
+                                Death (simulation projection).The user can navigate by the District and TA 
+                                tabs to see the same information described before, for different territorial levels. The districts and TAs can be selected from a list in the right panel, and all the information is updated on the screen.")
+                       )##--end of fluidRow
+                       ) ##--end of More Information 
+))##--end UI
 
 ##---------------------------------##
 ##--Server-------------------------##
