@@ -8,7 +8,7 @@ This application was build in R (version 3.6.3) with the RStudio IDE (version Ve
 
 In this section of the dashboard, the user can set a new percentage for masking and the length of intervention (in days) of this control measure. The same is applied to social distancing. It is also possible to choose the time horizon projection for the parameters set. In this way, the user can have an overview of future scenarios if the masking and social distancing are applied for a specific amount of days. After all parameters setting are done, the user can click on **Run Report** button, to generate the results. 
 
-## Model Priors
+## Fixed Model Parameters
 
 This section shows the parameters used in the epidemiological model simulation, and are derived from scientific literature and data from Malawi. These parameters refer to the basic reproduction number R0, Infectious Time (Days), Hospitalized Time (Days), and ICU Time (Days). The Hospitalized Rate of Infected, ICU Risk Among Hospitalized, and Fatality Rate of ICU are presented for different age groups: Pediatrics, Adults, and Elderly.
 
