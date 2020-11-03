@@ -7,7 +7,7 @@ library(lubridate)
 library(shinythemes)
 library(tidyverse)
 library(scales)
-
+library(shinyWidgets)
 
 ##--Loading dataframes for baseline simulations 
 masking <- read_csv("masking_with_date.csv")
@@ -49,7 +49,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                              ),
                              column(width = 5,
                                     # Policy Levers
-                                    strong("Policy Levers"),
+                                    h3(strong("Policy Levers")),
                                     tags$hr(),
                                     column(width = 4.0, strong("% Masking"),
                                            tags$h6("Current %: 15 %"),
@@ -91,28 +91,10 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                         )
                                            )
                              ),
-                             # column(width = 5,
-                             #        column(width = 4,
-                             #               #--Time Horizon Projection
-                             #               numericInput('projection', 'Time Horizon Projection (days)', 
-                             #                            value = 3, min = 1, max = 180)
-                             #        ),
-                             #        column(width = 4,
-                             #               selectInput('level', 'Level of Interest', choices = c("National", "District", "TA"))
-                             #               )
-                             #               
-                             # ),
-# 
-#                              column(width = 5, 
-#                                     # #--Include actionButton to run the report
-#                                     column(width = 4, offset = 2,
-#                                            actionButton("runreportButton", "Run Report", width = '300px')
-#                                     )
-#                                     ),
                             
                              column(width = 5,
                                     # Model Priors
-                                    strong("Fixed Model Parameters"),
+                                    h3(strong("Fixed Model Parameters")),
                                     tags$hr(),
                                     column(width = 3.0, 
                                            tags$p(strong("R0:"), "1.9"),
@@ -143,7 +125,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                              # Reductions
                              tags$p(),
                              column(width = 5,
-                                    strong("Reductions"),
+                                    h3(strong("Reductions")),
                                     tags$hr(),
                                     h5(strong("Absolute reduction due to implemented measures:")),
                                     tableOutput('table_reductions_country_abs'),
@@ -243,38 +225,40 @@ ui <- fluidPage(theme = shinytheme("united"),
                            )
                   ), ##--end panel TA
 
-              ##--More Information
-              tabPanel("More Information",
-                       fluidRow(titlePanel(strong("More Information")),
-                                
-                                tags$p("The user can set four parameters: the masking percentage, the length of masking intervention,
+                  ##--More Information
+                  tabPanel("More Information",
+                           fluidRow(titlePanel(strong("More Information")),
+                                    column(11, offset = 0.75,
+                                           tags$p("The user can set four parameters: the masking percentage, the length of masking intervention,
                                        the physical distancing percentage, and length of the distancing intervention."),
-                                tags$p("It is also possible to set the time horizon for the projections."),
-                                
-                                tags$p("Some parameters are fixed:"),
-              
-                                column(11, offset = 0.75,
-      
-                                       tags$div(
-                                         tags$ul(
-                                          tags$li(strong("R0:"), "is the basic reproduction number"),
-                                          tags$li("The Infectious Time in Days"),
-                                          tags$li("The Hospitalized Time in Days"),
-                                          tags$li("The ICU Time in Days"),
-                                          tags$li("The ICU Risk Among Hospitalized: this parameter is different 
+                                           tags$p("It is also possible to set the time horizon for the projections."),
+                                           
+                                           tags$p("Some parameters are fixed:")
+                                    ),
+                                    
+                                    column(11, offset = 0.75,
+                                           
+                                           tags$div(
+                                             tags$ul(
+                                               tags$li(strong("R0:"), "is the basic reproduction number"),
+                                               tags$li("The Infectious Time in Days"),
+                                               tags$li("The Hospitalized Time in Days"),
+                                               tags$li("The ICU Time in Days"),
+                                               tags$li("The ICU Risk Among Hospitalized: this parameter is different 
                                                   for each age class considered (Pediatrics, Adults, and Elderly)"),
-                                          tags$li("Hospitalized Rate of Infection: this parameter is different 
+                                               tags$li("Hospitalized Rate of Infection: this parameter is different 
                                                   for each age class considered (Pediatrics, Adults, and Elderly)"),
-                                          tags$li("The Fatality Rate of ICU: this parameter is different 
+                                               tags$li("The Fatality Rate of ICU: this parameter is different 
                                                   for each age class considered (Pediatrics, Adults, and Elderly)"),
-                      
-                                         )
-                                       )
-                                )
-
-                                ),##--end of fluidRow
-                       fluidRow(
-                         tags$p("Once the parameters are set, the user can click on the Run Report button to
+                                               
+                                             )
+                                           )
+                                    )
+                                    
+                           ),##--end of fluidRow
+                           fluidRow(
+                             column(11, offset = 0.75,
+                                    tags$p("Once the parameters are set, the user can click on the Run Report button to
                          execute the simulation.
                          The first result is presented as four plots showing the disease dynamic for the baseline status quo simulation, i. e.,
                          when there is no control meausres applied,
@@ -299,8 +283,9 @@ ui <- fluidPage(theme = shinytheme("united"),
                                 Hosp. (simulation projection), ICU (simulation projection), 
                                 Death (simulation projection).The user can navigate by the District and TA 
                                 tabs to see the same information described before, for different territorial levels. The districts and TAs can be selected from a list in the right panel, and all the information is updated on the screen.")
-                       )##--end of fluidRow
-                       ) ##--end of More Information 
+                             )
+                           )##--end of fluidRow
+                  ) ##--end of More Information 
 ))##--end UI
 
 ##---------------------------------##
@@ -970,7 +955,8 @@ server <- function(input, output, session) {
   output$fig <- renderPlotly({
     
     if(input$runreportButton == 0){
-      data_final_plot <- df_country_dash
+      data_final_plot <- df_country_dash %>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -988,7 +974,8 @@ server <- function(input, output, session) {
       fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'pink'))
       return(fig)
     }else{
-      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -1012,7 +999,8 @@ server <- function(input, output, session) {
   output$fig_country2 <- renderPlotly({
     
     if(input$runreportButton == 0){
-      data_final_plot <- df_country_dash
+      data_final_plot <- df_country_dash%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Severe_sq,
@@ -1024,13 +1012,14 @@ server <- function(input, output, session) {
                       height = 250)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
                             yaxis = list(title = ''))
-      fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+      fig <- fig %>% add_trace(y = ~ Severe_sim, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
       fig <- fig %>% layout(
         title = "<b>Severe Cases</b>"
       )
       return(fig)
     }else{
-      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Severe_sq,
@@ -1054,7 +1043,8 @@ server <- function(input, output, session) {
   output$fig_country3 <- renderPlotly({
     
     if(input$runreportButton == 0){
-      data_final_plot <- df_country_dash
+      data_final_plot <- df_country_dash%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Hospitalizations_sq,
@@ -1075,7 +1065,8 @@ server <- function(input, output, session) {
       fig
       return(fig)
     }else{
-      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Hospitalizations_sq,
@@ -1103,7 +1094,8 @@ server <- function(input, output, session) {
   output$fig_country4 <- renderPlotly({
     
     if(input$runreportButton == 0){
-      data_final_plot <- df_country_dash
+      data_final_plot <- df_country_dash%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Death_sq,
@@ -1121,7 +1113,8 @@ server <- function(input, output, session) {
       )
       return(fig)
     } else{
-      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(7))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Death_sq,
@@ -1150,13 +1143,14 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])
+    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)]) %>% 
+      filter(date >= today() - days(7))
     fig <-  plot_ly(data_final_plot,
                     x = ~ date,
                     y = ~ Cases_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Cases',
+                    name = 'Status Quo',
                     line = list(color = 'red'),
                     width = 500,
                     height = 250)
@@ -1165,7 +1159,7 @@ server <- function(input, output, session) {
     fig <- fig %>% layout(
       title = "<b>Cases</b>"
     )
-    fig <- fig %>% add_trace(y = ~ Cases, name = 'Cases (simulation)', line = list(color = 'pink'))
+    fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'pink'))
     fig
   })
   
@@ -1174,19 +1168,20 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])
+    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+      filter(date >= today() - days(7))
     fig <-  plot_ly(data_final_plot,
                     x = ~ date,
                     y = ~ Severe_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Severe cases',
+                    name = 'Status Quo',
                     line = list(color = 'orange'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+    fig <- fig %>% add_trace(y = ~ Severe, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
     fig <- fig %>% layout(
       title = "<b>Severe Cases</b>"
     )
@@ -1198,21 +1193,22 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])
+    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+      filter(date >= today() - days(7))
     fig <-  plot_ly(data_final_plot,
                     x = ~ date,
                     y = ~ Hospitalizations_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Hospitalizations',
+                    name = 'Hosp. (Status Quo)',
                     line = list(color = 'rgb(0, 102, 0)'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (simulation)', line = list(color = 'rgb(204,255,204)'))
-    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
-    fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
+    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
+    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
+    fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
     fig <- fig %>% layout(
       title = "<b>Hospitalizations and ICU</b>"
     )
@@ -1224,19 +1220,20 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])
+    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+      filter(date >= today() - days(7))
     fig <-  plot_ly(data_final_plot,
                     x = ~ date,
                     y = ~ Death_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Death',
+                    name = 'Status Quo',
                     line = list(color = 'black'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
+    fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
     fig <- fig %>% layout(
       title = "<b>Deaths</b>"
     )
@@ -1252,7 +1249,8 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])
+    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+      filter(date >= today() - days(7))
     #data_final_plot <- ta_simulation_status_quo()[[1]]
     
     fig <-  plot_ly(data_final_plot,
@@ -1260,7 +1258,7 @@ server <- function(input, output, session) {
                     y = ~ Cases_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Cases',
+                    name = 'Status Quo',
                     line = list(color = 'red'),
                     width = 500,
                     height = 250
@@ -1273,7 +1271,7 @@ server <- function(input, output, session) {
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (simulation)', line = list(color = 'rgb(204,255,204)'))
     #fig <- fig %>% add_trace(y = ~ Cases_sq, name = 'Cases', line = list(color = 'red'))
-    fig <- fig %>% add_trace(y = ~ Cases, name = 'Cases (simulation)', line = list(color = 'pink'))
+    fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'pink'))
     fig <- fig %>% layout(
       title = "<b>Cases</b>"
     )
@@ -1285,7 +1283,8 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])
+    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+      filter(date >= today() - days(7))
     #data_final_plot <- ta_simulation_status_quo()[[1]]
     
     fig <-  plot_ly(data_final_plot,
@@ -1293,13 +1292,13 @@ server <- function(input, output, session) {
                     y = ~ Severe_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Severe cases',
+                    name = 'Status Quo',
                     line = list(color = 'orange'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Severe, name = 'Severe cases (sim)', line = list(color = 'rgb(255, 223, 153)'))
+    fig <- fig %>% add_trace(y = ~ Severe, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
     
     fig <- fig %>% layout(
       title = "<b>Severe Cases</b>"
@@ -1312,7 +1311,8 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])
+    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+      filter(date >= today() - days(7))
     #data_final_plot <- ta_simulation_status_quo()[[1]]
     
     fig <-  plot_ly(data_final_plot,
@@ -1320,15 +1320,15 @@ server <- function(input, output, session) {
                     y = ~ Hospitalizations_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Hospitalizations',
+                    name = 'Hos. (Status Quo)',
                     line = list(color = 'rgb(0, 102, 0)'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hospitalizations (sim)', line = list(color = 'rgb(204,255,204)'))
-    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU', line = list(color = 'blue'))
-    fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (simulation)', line = list(color = 'lightblue'))
+    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Hosp. (Intervention)', line = list(color = 'rgb(204,255,204)'))
+    fig <- fig %>% add_trace(y = ~ ICU_sq, name = 'ICU (Status Quo)', line = list(color = 'blue'))
+    fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (Intervention)', line = list(color = 'lightblue'))
     #fig <- fig %>% add_trace(y = ~ Hospitalizations_sq, name = 'Hospitalizations', line = list(color = 'rgb(0, 102, 0)'))
     fig <- fig %>% layout(
       title = "<b>Hospitalizations and ICU</b>"
@@ -1341,7 +1341,8 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])
+    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+      filter(date >= today() - days(7))
     #data_final_plot <- ta_simulation_status_quo()[[1]]
     
     fig <-  plot_ly(data_final_plot,
@@ -1349,13 +1350,13 @@ server <- function(input, output, session) {
                     y = ~ Death_sq,
                     type = 'scatter',
                     mode = 'lines',
-                    name = 'Death',
+                    name = 'Status Quo',
                     line = list(color = 'black'),
                     width = 500,
                     height = 250)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death, name = 'Death (simulation)', line = list(color = 'grey'))
+    fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
     fig <- fig %>% layout(
       title = "<b>Deaths</b>"
     )
