@@ -22,6 +22,7 @@ df_country_dash <- read_csv("df_country_dash_initial.csv")
 hosp_time <- 4
 crit_time <- 8
 
+
 ##--UI
 ui <- fluidPage(theme = shinytheme("united"),
                 ##--National
@@ -169,7 +170,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     selectInput('district', 'District', 
                                                 choices = districts_names$districts),
                                     tags$hr(),
-                                    strong("Reductions"),
+                                    h3(strong("Reductions")),
                                     tags$hr(),
                                     h5(strong("Absolute reduction due to implemented measures:")),
                                     tags$p(),
@@ -208,7 +209,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     selectInput('ta', 'TA', 
                                                 choices = ta_names$ta_name),
                                     tags$hr(),
-                                    tags$h3("Reductions"),
+                                    tags$h3(strong("Reductions")),
                                     tags$hr(),
                                     h5(strong("Absolute reduction due to implemented measures:")),
                                     tags$p(),
@@ -293,6 +294,7 @@ ui <- fluidPage(theme = shinytheme("united"),
 ##---------------------------------##
 server <- function(input, output, session) {
   
+  
   #--Creating the inputs .csv's based on user's selection 
   
   maskdatasetInput <- observe({
@@ -312,7 +314,7 @@ server <- function(input, output, session) {
   })
   
   ##--##
-  maskdatasetInput <- observe({
+  distancingInput <- observe({
     
     if(input$runreportButton == 0) return()
     
@@ -325,7 +327,7 @@ server <- function(input, output, session) {
               "inputs/reductionScenarios/current_new.csv", 
               row.names = FALSE)
   })
-  ##--##
+  ##-----------------------------------------------------##
   
   ##-----------------------##
   ##--Simulation Function--##
@@ -1367,11 +1369,7 @@ server <- function(input, output, session) {
   ##---------------------------------##  
   ##--Table for Reductions National--##
   ##---------------------------------##
-  
-  # valueBox(value = paste(format(total.cases$tc, big.mark = ","), "", sep = " "),
-  #          caption = "Total cases", 
-  #          icon = "fas fa-book", 
-  #          color = "info")
+
   
   output$table_reductions_country_abs <- renderTable({
     if(input$runreportButton == 0)return()
@@ -1469,22 +1467,147 @@ server <- function(input, output, session) {
     return(table)
   })
   
-  ##------------------##  
-  ##--Table National--##
-  ##------------------##  
+  ##------------------------------##  
+  ##--Table National -- NEW!!!!!--##
+  ##------------------------------##  
+  
+  #--Modified Version for table at the bottom
+  #--All the districts together
+  
+  #--Baseline
+  table_all_districts_baseline <- reactive({
+    district_df <- simulation_baseline()[[2]] %>% 
+      mutate(Cases = `New Infections`)
+    
+    list_district_baseline <- list()
+    districts <- districts_names$districts
+    
+    ##--Loop--#####
+    for(i in 1:length(districts)){
+      df_district2 <- district_df %>% 
+        filter(Lvl3 == districts_names$districts[i])
+      
+      Cases_cum_dist <- cumsum(df_district2$Cases) %>% round()
+      Hospitalized_cum_dist <- cumsum(df_district2$Hospitalized)/hosp_time 
+      ICU_cum_dist <- cumsum(df_district2$Critical)/crit_time
+      Death_dist <- df_district2$Dead %>% round()
+      Severe_dist <- round(Hospitalized_cum_dist + ICU_cum_dist + Death_dist)
+      
+      df_district <- tibble(time = seq(1:365), 
+                            date = df_district2$date,
+                            District = districts[i],
+                            Cases = Cases_cum_dist, 
+                            Hospitalizations = round(Hospitalized_cum_dist),
+                            ICU = round(ICU_cum_dist), 
+                            Death = Death_dist,
+                            Severe = Severe_dist)
+      
+      list_district_baseline[[i]] <- df_district
+    }#--end of loop
+    ##--Projection baseline
+    table_all <- do.call(rbind, list_district_baseline)
+    df_simulation_baseline <- table_all %>% 
+      filter(date == today() + days(input$projection)) %>% 
+      select(Cases:Death)
+    names(df_simulation_baseline) <- c("Cases (status quo projection)",
+                                         "Hosp. (status quo projection)", 
+                                         "ICU (status quo projection)",
+                                         "Death (status quo projection)")
+    
+    ##--To date
+    df_baseline_to_date <- table_all %>% 
+      filter(date == today()) %>% 
+      select(District:Death)
+    names(df_baseline_to_date) <- c("District",
+                                       "Cases (to date)",
+                                       "Hosp. (to date)", 
+                                       "ICU (to date)",
+                                       "Death (to date)")
+    
+    ##--Result 
+    result <- list(df_baseline_to_date, df_simulation_baseline)
+    return(result)
+  }) #--end table_all_districts_baseline
+
+  #--Simulation Projection
+  table_all_districts_simulation <- reactive({
+    district_df <- simulation_function()[[2]] %>% 
+      mutate(Cases = `New Infections`)
+    
+    list_district_simulation <- list()
+    districts <- districts_names$districts
+    
+    ##--Loop--#####
+    for(i in 1:length(districts)){
+      df_district2 <- district_df %>% 
+        filter(Lvl3 == districts_names$districts[i])
+      
+      Cases_cum_dist <- cumsum(df_district2$Cases) %>% round()
+      Hospitalized_cum_dist <- cumsum(df_district2$Hospitalized)/hosp_time 
+      ICU_cum_dist <- cumsum(df_district2$Critical)/crit_time
+      Death_dist <- df_district2$Dead %>% round()
+      Severe_dist <- round(Hospitalized_cum_dist + ICU_cum_dist + Death_dist)
+      
+      df_district <- tibble(time = seq(1:365), 
+                            date = df_district2$date,
+                            District = districts[i],
+                            Cases = Cases_cum_dist, 
+                            Hospitalizations = round(Hospitalized_cum_dist),
+                            ICU = round(ICU_cum_dist), 
+                            Death = Death_dist,
+                            Severe = Severe_dist)
+      
+      list_district_simulation[[i]] <- df_district
+    }#--end of loop
+    table_all <- do.call(rbind, list_district_simulation)
+    ##
+    df_simulation_projection <- table_all %>% 
+      filter(date == today() + days(input$projection)) %>% 
+      select(Cases:Death)
+    names(df_simulation_projection) <- c("Cases (simulation projection)",
+                                         "Hosp. (simulation projection)", 
+                                         "ICU (simulation projection)",
+                                         "Death (simulation projection)")
+    df_simulation_projection
+  }) #--end table_all_districts_simulation
+  ##----------------------------------------##
+  
+  
   output$table_national <- DT::renderDT(
     DT::datatable(
       {
         if(input$runreportButton == 0) return()
-        #df <- cbind(country_projection_to_date(), country_projection_status_quo()[[2]], country_projection_sim()[[2]][,-1])
-        #df
-        point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
-        df <- cbind(country_projection_to_date(), country_projection_status_quo()[[2]], country_projection_sim()[[2]][,-1])
-        df2 <- tibble(point(df[,1]), point(df[,2]), point(df[,3]), point(df[,4]),
-                      point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
-                      point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]))
-        names(df2) <- names(df)
-        df2
+         #--Simulation projection
+         df_all_districts <- cbind(table_all_districts_baseline()[[1]],
+                                   table_all_districts_baseline()[[2]],
+                                   table_all_districts_simulation())
+
+         
+       #--Country table
+         df_country <- cbind(country_projection_to_date(),
+                             country_projection_status_quo()[[2]],
+                             country_projection_sim()[[2]][,-1])
+         df_country$District <- "Total"
+         var1 <- names(df_country)[1]
+         var2 <- names(df_country)[length(names(df_country))-1]
+         df_country <- df_country %>%
+           select(District, var1:var2)
+         names(df_country) <- names(df_all_districts)
+
+         df_final <- rbind(df_country, df_all_districts)
+         df_final
+         
+         #--comma separators
+
+          point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
+          df2 <- tibble(df_final[,1], point(df_final[,2]), point(df_final[,3]), point(df_final[,4]), 
+                        point(df_final[,5]), point(df_final[,6]), point(df_final[,7]), 
+                        point(df_final[,8]), point(df_final[,9]), point(df_final[,10]), 
+                        point(df_final[,11]), point(df_final[,12]), point(df_final[,13]))
+         names(df2) <- names(df_final)
+         df2
+        
+
         },
       extensions = 'Buttons',
       
@@ -1492,13 +1615,13 @@ server <- function(input, output, session) {
       #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 1,
+        pageLength = 10,
         autoWidth = TRUE,
-        #dom = 'Blfrtip',
-        dom = 'Bt',
-        buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        # lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All")
-        #                   )
+        dom = 'Blfrtip',
+        #dom = 'Bt',
+        buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All")
+                           )
         )
       )
   )
@@ -1506,18 +1629,139 @@ server <- function(input, output, session) {
   ##------------------##  
   ##--Table District--##
   ##------------------##  
+  
+  ##------------------------------##  
+  ##--Table District -- NEW!!!!!--##
+  ##------------------------------##
+  
+  ##--Simulation
+  table_tas_district_sim <- reactive({
+    df_ta_all <- simulation_function()[[3]] %>% 
+      filter(Lvl3 == input$district) %>% 
+      select(Lvl4, State, People, date) %>% 
+      group_by(date, State, Lvl4) %>% 
+      summarize(new_inf = sum(People))
+    
+    df_ta_spread <- spread(df_ta_all, key = State, value = new_inf) %>% 
+      mutate(Cases = `New Infections`)
+  
+    ta_names <- df_ta_spread$Lvl4 %>% unique()
+    list_ta <- list()
+    
+    ##--Creating Loop
+    for(i in 1:length(ta_names)){
+      filter_ta <- df_ta_spread %>% 
+        filter(Lvl4 == ta_names[i])
+      
+      Cases_cum_ta = cumsum(filter_ta$Cases) %>% round()
+      Hosp_cum_ta = cumsum(filter_ta$Hospitalized)/hosp_time 
+      Critical_cum_ta = cumsum(filter_ta$Critical)/crit_time 
+      Dead_ta =  filter_ta$Dead %>% round()
+      Severe_ta = round(Critical_cum_ta + Hosp_cum_ta + Dead_ta)
+      
+      simulation_ta <- tibble(date = filter_ta$date,
+                              TA = ta_names[i],
+                              Cases = Cases_cum_ta,
+                              Hospitalizations = round(Hosp_cum_ta),
+                              ICU = round(Critical_cum_ta),
+                              Death = Dead_ta,
+                              Severe = Severe_ta)
+      list_ta[[i]] <- simulation_ta
+    }
+    ta_all <- do.call(rbind, list_ta)
+    
+    ta_all_final <- ta_all %>% 
+      filter(date == today() + days(input$projection)) %>% 
+      select(TA:Death)
+    
+    names(ta_all_final) <- c("TA", "Cases (simulation projection)", "Hosp. (simulation projection)",
+                             "ICU (simulation projection)", "Death (simulation projection)")
+    ta_all_final
+    })
+  
+  ##--Status quo
+  table_tas_district_sq <- reactive({
+    df_ta_all <- simulation_baseline()[[3]] %>% 
+      filter(Lvl3 == input$district) %>% 
+      select(Lvl4, State, People, date) %>% 
+      group_by(date, State, Lvl4) %>% 
+      summarize(new_inf = sum(People))
+    
+    df_ta_spread <- spread(df_ta_all, key = State, value = new_inf) %>% 
+      mutate(Cases = `New Infections`)
+    
+    ta_names <- df_ta_spread$Lvl4 %>% unique()
+    list_ta <- list()
+    
+    ##--Creating Loop
+    for(i in 1:length(ta_names)){
+      filter_ta <- df_ta_spread %>% 
+        filter(Lvl4 == ta_names[i])
+      
+      Cases_cum_ta = cumsum(filter_ta$Cases) %>% round()
+      Hosp_cum_ta = cumsum(filter_ta$Hospitalized)/hosp_time 
+      Critical_cum_ta = cumsum(filter_ta$Critical)/crit_time 
+      Dead_ta =  filter_ta$Dead %>% round()
+      Severe_ta = round(Critical_cum_ta + Hosp_cum_ta + Dead_ta)
+      
+      simulation_ta <- tibble(date = filter_ta$date,
+                              TA = ta_names[i],
+                              Cases = Cases_cum_ta,
+                              Hospitalizations = round(Hosp_cum_ta),
+                              ICU = round(Critical_cum_ta),
+                              Death = Dead_ta,
+                              Severe = Severe_ta)
+      list_ta[[i]] <- simulation_ta
+    }
+    ta_all <- do.call(rbind, list_ta)
+    
+    ta_all_final <- ta_all %>% 
+      filter(date == today() + days(input$projection)) %>% 
+      select(TA:Death)
+    
+    names(ta_all_final) <- c("TA", "Cases (status quo projection)", "Hosp. (status quo projection)",
+                             "ICU (status quo projection)", "Death (status quo projection)")
+    
+    ##--To date
+    ta_all_to_date <- ta_all %>% 
+      filter(date == today()) %>% 
+      select(TA:Death)
+    
+    names(ta_all_to_date) <- c("TA", "Cases (to date)", "Hosp. (to date)",
+                             "ICU (to date)", "Death (to date)")
+    result <- list(ta_all_to_date, ta_all_final)
+    return(result)
+    })
+  ##--------------------------------###
   output$table_district <- DT::renderDT(
     DT::datatable(
       {
         if(input$runreportButton == 0) return()
-        #cbind(district_projection_to_date(), district_projection_status_quo()[[2]], district_sim()[[2]])
-        df <- cbind(district_projection_to_date(), district_projection_status_quo()[[2]], district_sim()[[2]])
-        point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
-        df2 <- tibble(point(df[,1]), point(df[,2]), point(df[,3]), point(df[,4]),
-                      point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
-                      point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]))
-        names(df2) <- names(df)
+        df <- cbind(district_projection_to_date(), 
+                     district_projection_status_quo()[[2]], 
+                     district_sim()[[2]]) %>% 
+          mutate(TA = "Total") %>% 
+          select(TA, `Cases (to date)` : `Death (simulation projection)`)
+        
+        names(df)[6:9] <- c("Cases (status quo projection)", "Hosp. (status quo projection)",
+                            "ICU (status quo projection)", "Death (status quo projection)")
+        
+        df_all <- cbind(table_tas_district_sq()[[1]],
+                        table_tas_district_sq()[[2]][,-1], 
+                        table_tas_district_sim()[,-1])
+        
+        df_final <- rbind(df, df_all)
+        
+        
+         point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
+         df2 <- tibble(df_final[,1], point(df_final[,2]), point(df_final[,3]), point(df_final[,4]),
+                       point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
+                       point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]), point(df[,13]))
+         names(df2) <- names(df_final)
         df2
+        
+        
+        
       },
       extensions = 'Buttons',
       
@@ -1527,10 +1771,10 @@ server <- function(input, output, session) {
         deferRender = TRUE,
         pageLength = 10,
         autoWidth = TRUE,
-        #dom = 'Blfrtip', 
-        dom = 'Bt',
-        buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        #lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
+        dom = 'Blfrtip', 
+        #dom = 'Bt',
+        buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
         )
         )
   )
