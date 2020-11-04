@@ -1831,7 +1831,7 @@ server <- function(input, output, session) {
     
     #--projection status quo
     status_quo_ta_all_projection <- ta_all %>% 
-      filter(date == today() + days(input_projection))
+      filter(date == today() + days(input$projection))
     names(status_quo_ta_all_projection) <- c("date", "TA", "Cases (status quo projection)", "Hosp. (status quo projection)",
                                              "ICU (status quo projection)", "Death (status quo projection)", "Severe (status quo projection)")
     status_quo_ta_all_projection <- status_quo_ta_all_projection %>% 
@@ -1875,7 +1875,7 @@ server <- function(input, output, session) {
     ta_all <- do.call(rbind, list_ta)
     #--projection simulation
     status_quo_ta_all_projection <- ta_all %>% 
-      filter(date == today() + days(input_projection))
+      filter(date == today() + days(input$projection))
     names(status_quo_ta_all_projection) <- c("date", "TA", "Cases (simulation projection)", "Hosp. (simulation projection)",
                                              "ICU (simulation projection)", "Death (simulation projection)", "Severe (simulation projection)")
     status_quo_ta_all_projection <- status_quo_ta_all_projection %>% 
