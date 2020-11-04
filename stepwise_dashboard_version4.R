@@ -1755,8 +1755,8 @@ server <- function(input, output, session) {
         
          point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
          df2 <- tibble(df_final[,1], point(df_final[,2]), point(df_final[,3]), point(df_final[,4]),
-                       point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
-                       point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]), point(df[,13]))
+                       point(df_final[,5]), point(df_final[,6]), point(df_final[,7]), point(df_final[,8]),
+                       point(df_final[,9]), point(df_final[,10]), point(df_final[,11]), point(df_final[,12]), point(df_final[,13]))
          names(df2) <- names(df_final)
         df2
         
