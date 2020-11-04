@@ -599,7 +599,7 @@ server <- function(input, output, session) {
       filter(date == lubridate::today() + lubridate::days(input$projection))
     names(projection_ta) <- c("date", "Cases (simulation projection)",
                               "Hosp. (simulation projection)",
-                              "Critical (simulation projection)",
+                              "ICU (simulation projection)",
                               "Death (simulation projection)")
     #projection_ta 
     
@@ -942,8 +942,8 @@ server <- function(input, output, session) {
       select(date, Cases_sq:Death_sq)
     names(to_date_ta_sq) <- c("date", "Cases (to date)",
                               "Hosp. (to date)",
-                              "Critical (date)",
-                              "Death (date)")
+                              "Critical (to date)",
+                              "Death (to date)")
     
     result <- list(simulation_ta_sq, projection_ta_sq, to_date_ta_sq)
     return(result)
@@ -1717,7 +1717,7 @@ server <- function(input, output, session) {
     
     ta_all_final <- ta_all %>% 
       filter(date == today() + days(input$projection)) %>% 
-      select(TA:Death)
+      select(TA:Death) 
     
     names(ta_all_final) <- c("TA", "Cases (status quo projection)", "Hosp. (status quo projection)",
                              "ICU (status quo projection)", "Death (status quo projection)")
@@ -1737,30 +1737,31 @@ server <- function(input, output, session) {
     DT::datatable(
       {
         if(input$runreportButton == 0) return()
-        df <- cbind(district_projection_to_date(), 
-                     district_projection_status_quo()[[2]], 
-                     district_sim()[[2]]) %>% 
-          mutate(TA = "Total") %>% 
+        df <- cbind(district_projection_to_date(),
+                     district_projection_status_quo()[[2]],
+                     district_sim()[[2]]) %>%
+          mutate(TA = "Total") %>%
           select(TA, `Cases (to date)` : `Death (simulation projection)`)
-        
+
         names(df)[6:9] <- c("Cases (status quo projection)", "Hosp. (status quo projection)",
                             "ICU (status quo projection)", "Death (status quo projection)")
+        # df
         
-        df_all <- cbind(table_tas_district_sq()[[1]],
-                        table_tas_district_sq()[[2]][,-1], 
-                        table_tas_district_sim()[,-1])
-        
+         df_all <- cbind(table_tas_district_sq()[[1]],
+                         table_tas_district_sq()[[2]][,-1], 
+                         table_tas_district_sim()[,-1])
+         #df_all
+
         df_final <- rbind(df, df_all)
-        
-        
+
+
          point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
          df2 <- tibble(df_final[,1], point(df_final[,2]), point(df_final[,3]), point(df_final[,4]),
                        point(df_final[,5]), point(df_final[,6]), point(df_final[,7]), point(df_final[,8]),
-                       point(df_final[,9]), point(df_final[,10]), point(df_final[,11]), point(df_final[,12]), point(df_final[,13]))
+                       point(df_final[,9]), point(df_final[,10]), point(df_final[,11]),
+         point(df_final[,12]), point(df_final[,13]))
          names(df2) <- names(df_final)
         df2
-        
-        
         
       },
       extensions = 'Buttons',
@@ -1782,18 +1783,141 @@ server <- function(input, output, session) {
   ##------------##  
   ##--Table TA--##
   ##------------##  
+  
+  ##------------------------------##  
+  ##--Table TAs   --    NEW!!!!!--##
+  ##------------------------------##
+  ##--Status quo
+  new_ta_table_status_quo <-  reactive({
+    df_ta_all <- simulation_baseline()[[3]] %>% 
+      select(Lvl4, State, People, date) %>% 
+      group_by(date, State, Lvl4) %>% 
+      summarize(new_inf = sum(People))
+    
+    df_ta_spread <- spread(df_ta_all, key = State, value = new_inf) %>% 
+      mutate(Cases = `New Infections`)
+    
+    #--Organizing compartments
+    ta_names <- df_ta_spread$Lvl4 %>% unique()
+    list_ta <- list()
+    for(i in 1:length(ta_names)){
+      filter_ta <- df_ta_spread %>% 
+        filter(Lvl4 == ta_names[i])
+      
+      Cases_cum_ta = cumsum(filter_ta$Cases) %>% round()
+      Hosp_cum_ta = cumsum(filter_ta$Hospitalized)/hosp_time 
+      Critical_cum_ta = cumsum(filter_ta$Critical)/crit_time 
+      Dead_ta =  filter_ta$Dead %>% round()
+      Severe_ta = round(Critical_cum_ta + Hosp_cum_ta + Dead_ta)
+      
+      simulation_ta <- tibble(date = filter_ta$date,
+                              TA = ta_names[i],
+                              Cases = Cases_cum_ta,
+                              Hospitalizations = round(Hosp_cum_ta),
+                              ICU = round(Critical_cum_ta),
+                              Death = Dead_ta,
+                              Severe = Severe_ta)
+      list_ta[[i]] <- simulation_ta
+    }
+    ta_all <- do.call(rbind, list_ta)
+    
+    #--to date
+    status_quo_ta_all_to_date <- ta_all %>% 
+      filter(date == today())
+    names(status_quo_ta_all_to_date) <- c("date", "TA", "Cases (to date)", "Hosp. (to date)",
+                                          "ICU (to date)", "Death (to date)", "Severe (to date)")
+    status_quo_ta_all_to_date <- status_quo_ta_all_to_date %>% 
+      filter(TA != input$ta)
+    
+    #--projection status quo
+    status_quo_ta_all_projection <- ta_all %>% 
+      filter(date == today() + days(input_projection))
+    names(status_quo_ta_all_projection) <- c("date", "TA", "Cases (status quo projection)", "Hosp. (status quo projection)",
+                                             "ICU (status quo projection)", "Death (status quo projection)", "Severe (status quo projection)")
+    status_quo_ta_all_projection <- status_quo_ta_all_projection %>% 
+      filter(TA != input$ta)
+    
+    #--Binding to date with status quo projection 
+    cbind(status_quo_ta_all_to_date[,-c(1,7)], status_quo_ta_all_projection[,-c(1,2,7)])
+  })
+  
+  ##--Simulation
+  new_ta_table_simulation <- reactive({
+    df_ta_all <- simulation_function()[[3]] %>% 
+      select(Lvl4, State, People, date) %>% 
+      group_by(date, State, Lvl4) %>% 
+      summarize(new_inf = sum(People))
+    df_ta_spread <- spread(df_ta_all, key = State, value = new_inf) %>% 
+      mutate(Cases = `New Infections`)
+    
+    #--Organizing compartments
+    ta_names <- df_ta_spread$Lvl4 %>% unique()
+    list_ta <- list()
+    for(i in 1:length(ta_names)){
+      filter_ta <- df_ta_spread %>% 
+        filter(Lvl4 == ta_names[i])
+      
+      Cases_cum_ta = cumsum(filter_ta$Cases) %>% round()
+      Hosp_cum_ta = cumsum(filter_ta$Hospitalized)/hosp_time 
+      Critical_cum_ta = cumsum(filter_ta$Critical)/crit_time 
+      Dead_ta =  filter_ta$Dead %>% round()
+      Severe_ta = round(Critical_cum_ta + Hosp_cum_ta + Dead_ta)
+      
+      simulation_ta <- tibble(date = filter_ta$date,
+                              TA = ta_names[i],
+                              Cases = Cases_cum_ta,
+                              Hospitalizations = round(Hosp_cum_ta),
+                              ICU = round(Critical_cum_ta),
+                              Death = Dead_ta,
+                              Severe = Severe_ta)
+      list_ta[[i]] <- simulation_ta
+    }
+    ta_all <- do.call(rbind, list_ta)
+    #--projection simulation
+    status_quo_ta_all_projection <- ta_all %>% 
+      filter(date == today() + days(input_projection))
+    names(status_quo_ta_all_projection) <- c("date", "TA", "Cases (simulation projection)", "Hosp. (simulation projection)",
+                                             "ICU (simulation projection)", "Death (simulation projection)", "Severe (simulation projection)")
+    status_quo_ta_all_projection <- status_quo_ta_all_projection %>% 
+      filter(TA != input$ta)
+  })
+  ##---------------------------------------##
+  
+  
   output$table_ta <- DT::renderDT(
     DT::datatable(
       {
         if(input$runreportButton == 0) return()
         #cbind(ta_simulation_status_quo()[[3]][,-1], ta_simulation_status_quo()[[2]][,-1], ta_simulation()[[2]][,-1])
-        df <- cbind(ta_simulation_status_quo()[[3]][,-1], ta_simulation_status_quo()[[2]][,-1], ta_simulation()[[2]][,-1])
+        df <- cbind(ta_simulation_status_quo()[[3]][,-1],
+                     ta_simulation_status_quo()[[2]][,-1],
+                     ta_simulation()[[2]][,-c(1,6)])
+
+        df$TA <- input$ta
+        df <- df %>% 
+          select(TA, `Cases (to date)`:`Death (simulation projection)`)
+        
+        names(df)[4] <- "ICU (to date)"
+        names(df)[8] <- "ICU (status quo projection)"
+        
+        #df
+        ##New tests
+        all_tas <- cbind(new_ta_table_status_quo(), new_ta_table_simulation()[,-c(1,2,7)])
+        
+        all_tas
+        final_ta <- rbind(df, all_tas)
+
+        #final_ta
+
         point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
-        df2 <- tibble(point(df[,1]), point(df[,2]), point(df[,3]), point(df[,4]),
-                      point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
-                      point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]))
-        names(df2) <- names(df)
-        df2
+        df2 <- tibble(final_ta[,1], point(final_ta[,2]), point(final_ta[,3]), point(final_ta[,4]),
+                        point(final_ta[,5]), point(final_ta[,6]), point(final_ta[,7]), point(final_ta[,8]),
+                        point(final_ta[,9]), point(final_ta[,10]), point(final_ta[,11]), point(final_ta[,12]),
+                       point(final_ta[,13]))
+         names(df2) <- names(final_ta)
+         df2
+        
+        
       },
       extensions = 'Buttons',
       
@@ -1801,12 +1925,12 @@ server <- function(input, output, session) {
       #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 1,
+        pageLength = 10,
         autoWidth = TRUE,
-        #dom = 'Blfrtip', 
-        dom = 'Bt',
-        buttons = c('csv', 'excel') # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        #lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
+        dom = 'Blfrtip', 
+        #dom = 'Bt',
+        buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All"))
         )
         )
   )
