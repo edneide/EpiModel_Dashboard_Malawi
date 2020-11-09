@@ -1927,4 +1927,5 @@ server <- function(input, output, session) {
 ##---------------------------------##
 ##--App-------------------------##
 ##---------------------------------##
+##--Old version
 shinyApp(ui, server)
