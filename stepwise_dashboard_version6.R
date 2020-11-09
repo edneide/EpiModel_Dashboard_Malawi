@@ -22,12 +22,6 @@ df_country_dash <- read_csv("df_country_dash_initial.csv")
 hosp_time <- 4
 crit_time <- 8
 
-##Functions
-teste <- function(){
-  print("Olá teste")
-}
-
-
 
 ##UI
 ui <- fluidPage(theme = shinytheme("united"),
@@ -107,7 +101,9 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                         value = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) , 
                                                         min = 1, 
                                                         max = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) ),
+                                           ##--Set x axis for plot
                                            
+                                           ##--Level of interest 
                                            selectInput('level', 'Level of Interest',
                                                        choices = c("National", "District", "TA"))
                                            
@@ -915,7 +911,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash %>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -932,11 +928,12 @@ server <- function(input, output, session) {
       )
       fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
+                               line = list(color = 'grey', dash = 'dash'), name = 'Today')%>% 
+        config(displayModeBar = F)
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -978,7 +975,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1004,7 +1001,7 @@ server <- function(input, output, session) {
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1046,7 +1043,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ ICU_sq,
@@ -1067,7 +1064,7 @@ server <- function(input, output, session) {
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1111,7 +1108,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Death_sq,
@@ -1132,7 +1129,7 @@ server <- function(input, output, session) {
       return(fig)
     } else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(15))
+        filter(date >= today() - days(60))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1185,7 +1182,7 @@ server <- function(input, output, session) {
     #data_final_plot <- district_projection_status_quo()[[1]]
     data_final_plot <- cbind(district_projection_status_quo()[[1]], 
                              district_sim()[[1]][,-c(1,2)]) %>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1227,7 +1224,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1269,7 +1266,7 @@ server <- function(input, output, session) {
     
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1312,7 +1309,7 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1363,7 +1360,7 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1407,7 +1404,7 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1451,7 +1448,7 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1495,7 +1492,7 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(15))
+      filter(date >= today() - days(60))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
