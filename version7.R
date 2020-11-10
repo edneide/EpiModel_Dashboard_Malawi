@@ -930,9 +930,9 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in millions)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% layout(
-        title = "<b>Cases</b>"
+        title = "<b>Cases (in millions)</b>"
       )
       fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
@@ -956,9 +956,9 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in millions)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% layout(
-        title = "<b>Cases</b>"
+        title = "<b>Cases (in millions)</b>"
       )
       fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
@@ -999,11 +999,11 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Intervention', 
                                line = list(color = 'rgb(255, 223, 153)'))
       fig <- fig %>% layout(
-        title = "<b>Hospitalizations</b>"
+        title = "<b>Hospitalizations (in thousands)</b>"
       )
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                                line = list(color = 'grey', dash = 'dash'), name = 'Today')%>% 
@@ -1026,10 +1026,10 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
       fig <- fig %>% layout(
-        title = "<b>Hospitalizations</b>"
+        title = "<b>Hospitalizations (in thousands)</b>"
       )
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
@@ -1065,10 +1065,10 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'Intervention', line = list(color = 'pink'))
       fig <- fig %>% layout(
-        title = "<b>ICU</b>"
+        title = "<b>ICU (in thousands)</b>"
       )
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                                line = list(color = 'grey', dash = 'dash'), name = 'Today')%>% 
@@ -1092,10 +1092,10 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'Intervention', line = list(color = 'pink'))
       fig <- fig %>% layout(
-        title = "<b>ICU</b>"
+        title = "<b>ICU (in thousands)</b>"
       )
       fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
@@ -1132,7 +1132,7 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
       fig <- fig %>% layout(
         title = "<b>Deaths</b>"
@@ -1159,7 +1159,7 @@ server <- function(input, output, session) {
                       width = 500,
                       height = 300)
       fig <- fig %>% layout(xaxis = list(title = "Date"),
-                            yaxis = list(title = '(in thousands)'))
+                            yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
       fig <- fig %>% layout(
         title = "<b>Deaths</b>"
@@ -1213,9 +1213,9 @@ server <- function(input, output, session) {
                     width = 500,
                     height = 300)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = '(in thousands)'))
+                          yaxis = list(title = ''))
     fig <- fig %>% layout(
-      title = "<b>Cases</b>"
+      title = "<b>Cases (in thousands)</b>"
     )
     fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
     fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
@@ -1375,9 +1375,8 @@ server <- function(input, output, session) {
   })
   ##--Cases
   output$fig_ta <- renderPlotly({
-    
+    req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
-    
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
       filter(date >= today() - days(input$begin_plot))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1396,7 +1395,7 @@ server <- function(input, output, session) {
                     height = 300
     )
     fig <- fig %>% layout(xaxis = list(title = "Date"),
-                          yaxis = list(title = '(in thousands)'))
+                          yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
     fig <- fig %>% layout(
       title = "<b>Cases</b>"
@@ -1420,9 +1419,8 @@ server <- function(input, output, session) {
   })
   ##--Hospitalizations
   output$fig_ta2 <- renderPlotly({
-    
+    req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
-    
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
       filter(date >= today() - days(input$begin_plot))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1465,9 +1463,8 @@ server <- function(input, output, session) {
   })
   ##--ICU
   output$fig_ta3 <- renderPlotly({
-    
+    req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
-    
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
       filter(date >= today() - days(input$begin_plot))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1510,9 +1507,9 @@ server <- function(input, output, session) {
   })
   ##--Death
   output$fig_ta4 <- renderPlotly({
-    
+    ##--Require certain inputs
+    req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
-    
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
       filter(date >= today() - days(input$begin_plot))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -2070,6 +2067,7 @@ server <- function(input, output, session) {
   ##--Table for Reductions TAs--##
   ##----------------------------##
   output$table_reductions_ta_abs <- renderTable({
+    req(input$ta)
     if(input$runreportButton == 0)return()
     reduc_cases <- abs(ta_simulation_status_quo()[[2]][1,2] - ta_simulation()[[2]][1,2]) 
     reduc_hosp <- abs(ta_simulation_status_quo()[[2]][1,3] - ta_simulation()[[2]][1,3]) 
@@ -2083,6 +2081,7 @@ server <- function(input, output, session) {
     return(table)
   })
   output$table_reductions_ta_perc <- renderTable({
+    req(input$ta)
     if(input$runreportButton == 0)return()
     reduc_cases <- abs(100*(ta_simulation()[[2]][1,2] /ta_simulation_status_quo()[[2]][1,2] - 1))
     reduc_hosp <- abs(100*(ta_simulation()[[2]][1,3] /ta_simulation_status_quo()[[2]][1,3] - 1))
@@ -2148,11 +2147,12 @@ server <- function(input, output, session) {
                     'Select a District',
                     choices = district_choices())
       })
-      output$ta_ui <- renderUI({selectInput('ta',
-                                            'Select a TA', 
-                                            choices = tas_names2 %>% 
-                                              filter(Lvl3 == input$district2) %>% 
-                                              select(Lvl4) %>% pull())})
+      output$ta_ui <- renderUI({req(input$district2)
+        selectInput('ta',
+        'Select a TA', 
+        choices = tas_names2 %>% 
+        filter(Lvl3 == input$district2) %>% 
+        select(Lvl4) %>% pull())})
       output$ta_plot1 <- renderUI({plotlyOutput("fig_ta")})
       output$ta_plot2 <- renderUI({plotlyOutput("fig_ta2")})
       output$ta_plot3 <- renderUI({plotlyOutput("fig_ta3")})
