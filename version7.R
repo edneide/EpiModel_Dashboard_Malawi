@@ -15,6 +15,7 @@ current <- read_csv("current_with_date.csv",
                     col_types = cols(date = col_date(format = "%Y-%m-%d")))
 districts_names <- read_csv("districts_names.csv")
 ta_names <- read_csv("tas_names.csv")
+tas_names2 <- read_csv("tas_names2.csv")
 
 
 
@@ -64,6 +65,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                              ), #--end column width = 7
                              column(width = 5,
                                     uiOutput("district_ui"),
+                                    uiOutput("district_ui2"),
                                     uiOutput("ta_ui"),
                                     
                                     #verbatimTextOutput("choices_print")
@@ -100,12 +102,16 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     column(width = 4,
                                            #--Time Horizon Projection
                                            numericInput('projection', 'End of Model (days after today)',
-                                                        value = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) , 
+                                                        value = as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")) , 
                                                         min = 1, 
-                                                        max = as.numeric(difftime(as.Date("2021-03-03"), today(), units = "days")) ),
+                                                        max = as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")) ),
                                            ##--Set x axis for plot
                                            sliderInput('begin_plot', 'Start of Model (days before today)',
-                                                       min = 10, max = 60, value = 15, step = 5),
+                                                       min = 15, 
+                                                       max = as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")), 
+                                                       value = 15, 
+                                                       step = round((as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")) - 15)/10)
+                                                       ),
                                            ##--Level of interest 
                                            selectInput('level', 'Level of Interest',
                                                        choices = c("National", "District", "TA"))
@@ -130,7 +136,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                  text-indent: -2px;
                                                  border-radius: 6px;
                                                  border-width: 2px")
-                                           ),
+                                    ),
                                     br(),
                                     br(),
                                     h3(strong("Fixed Model Parameters")),
@@ -204,20 +210,20 @@ ui <- fluidPage(theme = shinytheme("united"),
                                                tags$li(strong("Level of Interest –"), "Option to select whether line plots will reflect values at the national-, district- or TA-level (Note that if either district or TA is selected, user must subsequently select a specific district or TA to generate results for)"),
                                              )
                                            ),
-                                         tags$p("Once the user sets all parameter values for manipulative policy levers, they may click",
-                                         strong("Run Report"), "to update the model outputs based on their selections."),
-                                         h2("Fixed model parameters"),
-                                         tags$p("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
+                                           tags$p("Once the user sets all parameter values for manipulative policy levers, they may click",
+                                                  strong("Run Report"), "to update the model outputs based on their selections."),
+                                           h2("Fixed model parameters"),
+                                           tags$p("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
                                          how it spreads and whom it is most likely to burden are fixed and therefore unavailable for user manipulation. 
                                          These fixed model parameters are listed and sourced below:"),
-                                         img(src="fixed_parameters.png", align = "center", height = "35%",
-                                             width = "35%"),
-                                         h3("Output:"),
-                                         tags$p("After making their selections and re-running the model, the following outputs will be generated:"),
-                                         tags$p(strong("1. Four Line Plots - "), "to depict cases, hospitalizations, 
+                                           img(src="fixed_parameters.png", align = "center", height = "35%",
+                                               width = "35%"),
+                                           h3("Output:"),
+                                           tags$p("After making their selections and re-running the model, the following outputs will be generated:"),
+                                           tags$p(strong("1. Four Line Plots - "), "to depict cases, hospitalizations, 
                                          ICU stays and deaths (time period spanning from 2 months prior to the present day to 365 days later) 
                                                      for the baseline simulation and for the simulation based on the user-defined inputs. See below: ")),
-                                         img(src="plots.png", align = "center", height = "40%", width = "40%"),
+                                    img(src="plots.png", align = "center", height = "40%", width = "40%"),
                                     column(11, offset = 0.75,
                                            tags$p(strong("2. Two Reductions Tables - "), "(“Absolute reduction due to implemented measures” and “Percentual reduction due to implemented measures”) to display the numeric and percentage decreases in cases, hospitalizations, ICU stays and deaths from the baseline to the user-defined simulation. See below:"),
                                            img(src="reductions.png", align = "center", height = "35%", width = "35%"),
@@ -235,7 +241,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                                            br(),
                                            br(),
                                            tags$p("For more information regarding the dashboard’s software and underlying technical program, please refer to the", strong("“Technical infrastructure guide”"), "tab.")
-                                           )##--end column 
+                                    )##--end column 
                            )##--end of fluidRow
                   ),##--end of User guide
                   
@@ -245,16 +251,16 @@ ui <- fluidPage(theme = shinytheme("united"),
                                            h2("Technical infrastructure guide"),
                                            tags$p("Our model is coded using freely available open source R programming language (version 3.6.3) with the RStudio IDE (version 1.4.869) and is available on",
                                                   tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub."),
-                                    "Our analytic code leverages the packages tidyverse, deSolve, and ggplot2. The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "library, other additional libraries 
+                                                  "Our analytic code leverages the packages tidyverse, deSolve, and ggplot2. The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "library, other additional libraries 
                                     were used to organize the model outputs and present the visualizations on the final app, 
                                     such as readr, plotly, DT, lubridate, shinythemes and tidyverse.
                                     For user instructions and explanations of the dashboard’s interface, please refer to the", 
                                                   strong("“User guide”"), "tab.")
-                                           )##--end of column
-                                    )##--end of fluid row
-                           )##--end of technical tab
-                  )
-                )##--end UI
+                           )##--end of column
+                           )##--end of fluid row
+                  )##--end of technical tab
+                )
+)##--end UI
 
 
 ##---------------------------------##
@@ -290,8 +296,7 @@ server <- function(input, output, session) {
   ##--Reactive functions--##
   ##----------------------##
   district_choices <- reactiveVal(districts_names$districts)
-  ta_choices <- reactiveVal(ta_names$ta_name)
-  
+
   ##--Simulation
   simulation_function <- reactive({
     
@@ -1344,7 +1349,7 @@ server <- function(input, output, session) {
       title = "<b>Deaths</b>"
     )
     fig <-  fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                          line = list(color = 'grey', dash = 'dash'), name = 'Today')
+                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
     fig <- layout(fig,
                   shapes = list(
                     list(type = "rect",
@@ -1487,7 +1492,7 @@ server <- function(input, output, session) {
     )
     fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
-
+    
     fig <- layout(fig,
                   shapes = list(
                     list(type = "rect",
@@ -1533,7 +1538,7 @@ server <- function(input, output, session) {
     )
     fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
-
+    
     fig <- layout(fig,
                   shapes = list(
                     list(type = "rect",
@@ -1969,15 +1974,15 @@ server <- function(input, output, session) {
     DT::datatable(
       {
         if(input$runreportButton == 0) return()
-
+        
         df <- cbind(new_ta_table_status_quo(), new_ta_table_simulation()[, -c(1,2,7)])
         point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
         df2 <- tibble(df[,1], point(df[,2]), point(df[,3]), point(df[,4]),
-                       point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
-                       point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]),
-                       point(df[,13]))
-         names(df2) <- names(df)
-         df2
+                      point(df[,5]), point(df[,6]), point(df[,7]), point(df[,8]),
+                      point(df[,9]), point(df[,10]), point(df[,11]), point(df[,12]),
+                      point(df[,13]))
+        names(df2) <- names(df)
+        df2
       },
       extensions = 'Buttons',
       
@@ -2121,6 +2126,7 @@ server <- function(input, output, session) {
       output$ta_table_reduction <- renderUI({})
       output$ta_table_reduction_perc <- renderUI({})
       output$ta_title <- renderUI({})
+      output$district_ui2 <- renderUI({})
       #--UI National
       output$national_ui <- renderUI({})
       output$national_ui2 <- renderUI({})
@@ -2137,8 +2143,16 @@ server <- function(input, output, session) {
   taObs <- observe({
     if(input$level == "TA"){
       ##--UIs TA
-      #output$district_ui2 <- renderUI({selectInput('district','Select a District', choices = district_choices())})
-      output$ta_ui <- renderUI({selectInput('ta','Select a TA', choices = ta_choices())})
+      output$district_ui2 <- renderUI({
+        selectInput('district2',
+                    'Select a District',
+                    choices = district_choices())
+      })
+      output$ta_ui <- renderUI({selectInput('ta',
+                                            'Select a TA', 
+                                            choices = tas_names2 %>% 
+                                              filter(Lvl3 == input$district2) %>% 
+                                              select(Lvl4) %>% pull())})
       output$ta_plot1 <- renderUI({plotlyOutput("fig_ta")})
       output$ta_plot2 <- renderUI({plotlyOutput("fig_ta2")})
       output$ta_plot3 <- renderUI({plotlyOutput("fig_ta3")})
@@ -2157,6 +2171,7 @@ server <- function(input, output, session) {
       output$national_reduction_perc <- renderUI({})
       output$national_title <- renderUI({})
       #--UIs district
+      output$district_ui <- renderUI({})
       output$district_ui_plot1 <- renderUI({})
       output$district_ui_plot2 <- renderUI({})
       output$district_ui_plot3 <- renderUI({})
@@ -2191,6 +2206,7 @@ server <- function(input, output, session) {
       output$ta_table_reduction <- renderUI({})
       output$ta_table_reduction_perc <- renderUI({})
       output$ta_title <- renderUI({})
+      output$district_ui2 <- renderUI({})
       ##--National
       output$national_ui <- renderUI({plotlyOutput("fig")})
       output$national_ui2 <- renderUI({plotlyOutput("fig_country2")})
