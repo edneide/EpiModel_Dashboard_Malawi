@@ -1,3 +1,8 @@
+##-----------------------##
+##--Most recent version--## 
+##--November 09, 2020----##
+##-----------------------##
+
 library(shiny)
 library(shinydashboard)
 library(readr)
@@ -8,6 +13,7 @@ library(shinythemes)
 library(tidyverse)
 library(scales)
 library(shinyWidgets)
+
 
 ##--Loading dataframes for baseline simulations 
 masking <- read_csv("masking_with_date.csv")
