@@ -102,9 +102,10 @@ ui <- fluidPage(theme = shinytheme("united"),
                                     column(width = 4,
                                            #--Time Horizon Projection
                                            numericInput('projection', 'End of Model (days after today)',
-                                                        value = as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")) , 
+                                                        value = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90) , 
                                                         min = 1, 
-                                                        max = as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")) ),
+                                                        max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90)
+                                                        ),
                                            ##--Set x axis for plot
                                            sliderInput('begin_plot', 'Start of Model (days before today)',
                                                        min = 15, 
@@ -183,6 +184,10 @@ ui <- fluidPage(theme = shinytheme("united"),
                              ),
                              column(width = 12,
                                     paste("Generated results:", today()),
+                                    br(),
+                                    uiOutput("print_national_table_title"),
+                                    uiOutput("print_district_table_title"),
+                                    uiOutput("print_ta_table_title"),
                                     uiOutput("national_ui5"),
                                     uiOutput("district_ui_table"),
                                     uiOutput("ta_table")
@@ -1214,6 +1219,7 @@ server <- function(input, output, session) {
                     height = 300)
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
+
     fig <- fig %>% layout(
       title = "<b>Cases (in thousands)</b>"
     )
@@ -1379,6 +1385,13 @@ server <- function(input, output, session) {
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
       filter(date >= today() - days(input$begin_plot))
+    ##--Changing title
+    title <- vector(mode = "character", length = 1)
+    if(data_final_plot$Cases_sq/100 > 99){
+      title[1] <- "Cases (in thousands)"
+    }else{
+      title[1] <- "Cases"
+    }
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1397,8 +1410,10 @@ server <- function(input, output, session) {
     fig <- fig %>% layout(xaxis = list(title = "Date"),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
+
     fig <- fig %>% layout(
-      title = "<b>Cases</b>"
+      #title = "<b>Cases</b>"
+      title = paste0("<b>",title[1],"<b>")
     )
     fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
@@ -1555,6 +1570,10 @@ server <- function(input, output, session) {
   ##------------------##
   ##--Table National--##
   ##------------------##
+  #--Title
+  output$national_table_title <- renderText({
+    "District-level data for Malawi"
+  })
   #--Baseline
   table_all_districts_baseline <- reactive({
     district_df <- simulation_baseline()[[2]] %>% 
@@ -1706,6 +1725,12 @@ server <- function(input, output, session) {
   ##------------------##
   ##--Table District--##
   ##------------------##
+  ##--Title
+  output$table_district_title <- renderText({
+    paste0("TA-level data for ", input$district)
+  })
+  
+  
   ##--Simulation
   table_tas_district_sim <- reactive({
     df_ta_all <- simulation_function()[[3]] %>% 
@@ -1854,6 +1879,10 @@ server <- function(input, output, session) {
   ##------------------------------##  
   ##--Table TAs   --    NEW!!!!!--##
   ##------------------------------##
+  #--Title
+  output$ta_table_title <- renderText({
+    paste0("TA-level data for ", input$district2)
+  })
   ##--Status quo
   new_ta_table_status_quo <-  reactive({
     df_ta2 <- simulation_baseline()[[3]]
@@ -2098,7 +2127,7 @@ server <- function(input, output, session) {
   ##--Observe Functions---------------------------------##
   ##----------------------------------------------------##
   
-  ##--District--##
+  ##--District Level Observe--##
   districtObs <- observe({
     if(input$level == "District"){
       output$district_ui <- renderUI({
@@ -2115,6 +2144,7 @@ server <- function(input, output, session) {
       output$district_ui_reduction <- renderUI({tableOutput("table_reductions_district_abs")})
       output$district_ui_reduction_perc <- renderUI({tableOutput("table_reductions_districts")})
       output$district_title <- renderUI({div(textOutput("plot_district_title"), style = "font-size:25px")})
+      output$print_district_table_title <- renderUI({div(textOutput("table_district_title"), style = "font-size:25px")}) 
       #--UI TA
       output$ta_ui <- renderUI({})
       output$ta_plot1 <- renderUI({})
@@ -2126,6 +2156,7 @@ server <- function(input, output, session) {
       output$ta_table_reduction_perc <- renderUI({})
       output$ta_title <- renderUI({})
       output$district_ui2 <- renderUI({})
+      output$print_ta_table_title <- renderUI({})
       #--UI National
       output$national_ui <- renderUI({})
       output$national_ui2 <- renderUI({})
@@ -2135,10 +2166,11 @@ server <- function(input, output, session) {
       output$national_reduction <- renderUI({})
       output$national_reduction_perc <- renderUI({})
       output$national_title <- renderUI({})
+      output$print_national_table_title <- renderUI({})
     }
   })
   
-  #--TA--##
+  #--TA Level Observe--##
   taObs <- observe({
     if(input$level == "TA"){
       ##--UIs TA
@@ -2161,6 +2193,8 @@ server <- function(input, output, session) {
       output$ta_table_reduction <- renderUI({tableOutput("table_reductions_ta_abs")})
       output$ta_table_reduction_perc <- renderUI({tableOutput("table_reductions_ta_perc")})
       output$ta_title <- renderUI({div(textOutput("plot_ta_title"), style = "font-size:25px")})
+      output$print_ta_table_title <- renderUI({div(textOutput("ta_table_title"), style = "font-size:25px")})
+      
       ##--UIs National
       output$national_ui <- renderUI({})
       output$national_ui2 <- renderUI({})
@@ -2170,6 +2204,7 @@ server <- function(input, output, session) {
       output$national_reduction <- renderUI({})
       output$national_reduction_perc <- renderUI({})
       output$national_title <- renderUI({})
+      output$print_national_table_title <- renderUI({})
       #--UIs district
       output$district_ui <- renderUI({})
       output$district_ui_plot1 <- renderUI({})
@@ -2180,10 +2215,11 @@ server <- function(input, output, session) {
       output$district_ui_reduction <- renderUI({})
       output$district_ui_reduction_perc <- renderUI({})
       output$district_title <- renderUI({})
+      output$print_district_table_title <- renderUI({})
     }
   })
   
-  #--National--##
+  ##--National Observe--##
   nationalObs <- observe({
     if(input$level == "National"){
       ##--District
@@ -2196,6 +2232,7 @@ server <- function(input, output, session) {
       output$district_ui_reduction <- renderUI({})
       output$district_ui_reduction_perc <- renderUI({})
       output$district_title <- renderUI({})
+      output$print_district_table_title <- renderUI({})
       ##--TA
       output$ta_ui <- renderUI({})
       output$ta_plot1 <- renderUI({})
@@ -2207,6 +2244,7 @@ server <- function(input, output, session) {
       output$ta_table_reduction_perc <- renderUI({})
       output$ta_title <- renderUI({})
       output$district_ui2 <- renderUI({})
+      output$print_ta_table_title <- renderUI({})
       ##--National
       output$national_ui <- renderUI({plotlyOutput("fig")})
       output$national_ui2 <- renderUI({plotlyOutput("fig_country2")})
@@ -2216,6 +2254,7 @@ server <- function(input, output, session) {
       output$national_reduction <- renderUI({tableOutput('table_reductions_country_abs')})
       output$national_reduction_perc <- renderUI({tableOutput('table_reductions_country')})
       output$national_title <- renderUI({div(textOutput("plot_national_title"), style = "font-size:25px")})
+      output$print_national_table_title <- renderUI({div(textOutput("national_table_title"), style = "font-size:25px")})
     }
   })
 }#--end of server       
