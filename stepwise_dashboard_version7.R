@@ -223,11 +223,11 @@ ui <- fluidPage(theme = shinytheme("united"),
                                          how it spreads and whom it is most likely to burden are fixed and therefore unavailable for user manipulation. 
                                          These fixed model parameters are listed and sourced below:"),
                                            ##add figure for fixed parameters
+                                           img(src="fixed.png", height = "35%", width = "35%"),
                                            h3("Output:"),
                                            tags$p("After making their selections and re-running the model, the following outputs will be generated:"),
-                                           tags$p(strong("1. Four Line Plots - "), "to depict cases, hospitalizations, 
-                                         ICU stays and deaths (time period spanning from 2 months prior to the present day to 365 days later) 
-                                                     for the baseline simulation and for the simulation based on the user-defined inputs. See below: ")),
+                                           tags$p(strong("1. Four Line Plots - "), "to depict cases, hospitalizations, ICU stays and deaths (time period spanning from user-defined model start date to 90 days later or March 31, 2021, 
+                                                  whichever occurs latest) for the baseline simulation and for the simulation based on the user-defined inputs. The black, vertical, dashed line indicates today or day 1 of the simulation. The length of the masking intervention, the physical distancing intervention and the overlap of these two interventions is visualized using blue, red and purple shading, respectively. See below: ")),
                                     img(src="plots.png", align = "center", height = "40%", width = "40%"),
                                     column(11, offset = 0.75,
                                            tags$p(strong("2. Two Reductions Tables - "), "(“Absolute reduction due to implemented measures” and “Percentual reduction due to implemented measures”) to display the numeric and percentage decreases in cases, hospitalizations, ICU stays and deaths from the baseline to the user-defined simulation. See below:"),
