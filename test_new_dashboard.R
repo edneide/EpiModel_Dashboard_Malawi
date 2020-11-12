@@ -53,7 +53,38 @@ body <- dashboardBody(
     tabItem(tabName = "home",
             fluidRow(
               column(width = 11, offset = 0.75,
+                     ##
+                     h3(strong("Fixed Model Parameters")),
+                     tags$hr(),
+                     column(width = 3,
+                            tags$p(strong("R0:"), "1.9"),
+                            tags$p(strong("Infectious Time (Days):"), "7"),
+                            tags$p(strong("Hospitalized Time (Days):"), "4"),
+                            tags$p(strong("ICU Time (Days):"), "8")
+                            ),
+                     column(width = 3,
+                            tags$p(strong("ICU Risk Among Hospitalized:")),
+                            tags$p(em("Pediatrics (<20):"), "5.0%"),
+                            tags$p(em("Adults (20-49):"), "14%"),
+                            tags$p(em("Elderly (50+):"), "28%")
+                            ),
+                     column(width = 3,
+                            tags$p(strong("Hospitalized Rate of Infected:")),
+                            tags$p(em("Pediatrics (<20):", "0.0090%")),
+                            tags$p(em("Adults (20-49):", "1.2%")),
+                            tags$p(em("Elderly (50+):", "5.5%"))
+                            ),
+                     column(width = 3,
+                            tags$p(strong("Fatality Rate of ICU:")),
+                            tags$p(em("Pediatrics (<20):", "9.0%")),
+                            tags$p(em("Adults (20-49):", "20%")),
+                            tags$p(em("Elderly (50+):", "59%"))
+                            ),
+                            
                      #--Policy Levers
+                     br(),
+                     br(),
+                     br(),
                      h3(strong("Policy Levers")),
                      tags$hr(),
                      column(width = 4.0, strong("% Masking"),
@@ -125,8 +156,21 @@ body <- dashboardBody(
             ##--Plots
             br(),
             br(),
+            ##--Widgets UI------------
+            fluidRow(
+              valueBoxOutput("cases", width = 3),
+              valueBoxOutput("hosp", width = 3),
+              valueBoxOutput("icu", width = 3),
+              valueBoxOutput("death", width = 3)
+              
+            ),
             fluidRow(
               column(width = 11, offset = 0.75,
+                     ##
+                     uiOutput("district_ui"),
+                     uiOutput("district_ui2"),
+                     uiOutput("ta_ui"),
+                     ##
                             uiOutput("national_title"),
                             uiOutput("district_title"),
                             uiOutput("ta_title"),
@@ -155,9 +199,34 @@ body <- dashboardBody(
                                    uiOutput("national_ui4"),
                                    uiOutput("district_ui_plot4"),
                                    uiOutput("ta_plot4")
-                            )
+                            )#--end column 6
                      )#--end of column 11
-              ) ##--end fluidRow for plots
+              ), ##--end fluidRow for plots
+            ## Reduction tables
+            fluidRow(column(width = 11, offset = 0.75,
+              h3(strong("Reductions")),
+                     tags$hr(),
+                     h5(strong("Absolute reduction due to implemented measures:")),
+                     uiOutput("national_reduction"),
+                     uiOutput("district_ui_reduction"),
+                     uiOutput("ta_table_reduction"),
+                     h5(strong("Percentual reduction due to implemented measures:")),
+                     uiOutput("national_reduction_perc"),
+                     uiOutput("district_ui_reduction_perc"),
+                     uiOutput("ta_table_reduction_perc")),#end of column for reduction tables
+              column(width = 11, offset = 0.75,
+                     br(),
+                     paste("Generated results:", today()),
+                     br(),
+                     br(),
+                     uiOutput("print_national_table_title"),
+                     uiOutput("print_district_table_title"),
+                     uiOutput("print_ta_table_title"),
+                     uiOutput("national_ui5"),
+                     uiOutput("district_ui_table"),
+                     uiOutput("ta_table")
+                     )#--end of column for result table
+            )##end fluidRow table reductions
             ),##--end of Home
     ##--User guide
     tabItem(tabName = "user_guide",
@@ -230,15 +299,18 @@ body <- dashboardBody(
 )#--end of dashboardBody
 
                  
-##------##
-##--UI--##
-##------##
-ui <- dashboardPage(header = header, sidebar = sidebar, body = body)
+##UI------------------
+
+ui <- dashboardPage(skin = "purple", header = header, sidebar = sidebar, body = body)
+
+## 4. Server-----------------------------------------
 
 ##----------##
 ##--SERVER--##
 ##----------##
 server <- function(input, output, session){
+
+  ##---------------------------------------------------##
   #---Creating the inputs .csv's based on user's selection 
   restrictionsInput <- observe({
     if(input$runreportButton == 0) return()
@@ -508,9 +580,9 @@ server <- function(input, output, session){
     return(result)
   })
   
-  ##-----------------------##
-  ##--Simulation Baseline--##
-  ##-----------------------##
+  
+  ##--Simulation Baseline--------------------
+ 
   simulation_baseline <- reactive({
     
     if(input$runreportButton == 0) return()
@@ -878,9 +950,9 @@ server <- function(input, output, session){
     return(result)
   })
   
-  ##------------------##
-  ##--Plots National--##
-  ##------------------##
+  
+  ##--Plots National--------------
+  
   #--Title
   output$plot_national_title <- renderText({
     "Graphs at National Level"
@@ -1175,9 +1247,9 @@ server <- function(input, output, session){
     }
   })
   
-  ##------------------##
-  ##--Plots District--##
-  ##------------------##
+
+  ##--Plots District---------------------
+
   #--Title
   output$plot_district_title <- renderText({
     paste0("Graphs at District Level: ", input$district)
@@ -1367,9 +1439,9 @@ server <- function(input, output, session){
     return(fig)
   })
   
-  ##------------##
-  ##--Plots TA--##
-  ##------------##
+ 
+  ##--Plots TA------------------
+  
   ##--Title
   output$plot_ta_title <- renderText({
     paste0("Graphs at TA Level: ", input$ta)
@@ -1569,9 +1641,10 @@ server <- function(input, output, session){
     return(fig)
   })
   
-  ##------------------##
-  ##--Table National--##
-  ##------------------##
+  
+  
+  ##--Table National--------------------
+  
   #--Title
   output$national_table_title <- renderText({
     "District-level data for Malawi"
@@ -1584,7 +1657,7 @@ server <- function(input, output, session){
     list_district_baseline <- list()
     districts <- districts_names$districts
     
-    ##--Loop--#####
+    ##--Loop
     for(i in 1:length(districts)){
       df_district2 <- district_df %>% 
         filter(Lvl3 == districts_names$districts[i])
@@ -1638,7 +1711,7 @@ server <- function(input, output, session){
     list_district_simulation <- list()
     districts <- districts_names$districts
     
-    ##--Loop--#####
+    ##--Loop
     for(i in 1:length(districts)){
       df_district2 <- district_df %>% 
         filter(Lvl3 == districts_names$districts[i])
@@ -1724,9 +1797,9 @@ server <- function(input, output, session){
     )
   )
   
-  ##------------------##
-  ##--Table District--##
-  ##------------------##
+  
+  ##--Table District-----------
+  
   ##--Title
   output$table_district_title <- renderText({
     paste0("TA-level data for ", input$district)
@@ -1878,9 +1951,9 @@ server <- function(input, output, session){
     )
   )
   
-  ##------------------------------##  
-  ##--Table TAs   --    NEW!!!!!--##
-  ##------------------------------##
+ 
+  ##--Table TAs-------------------
+  
   #--Title
   output$ta_table_title <- renderText({
     paste0("TA-level data for ", input$district2)
@@ -2028,9 +2101,9 @@ server <- function(input, output, session){
     )
   )
   
-  ##---------------------------------##  
-  ##--Table for Reductions National--##
-  ##---------------------------------##
+   
+  ##--Table for Reductions National--------------
+ 
   output$table_reductions_country_abs <- renderTable({
     if(input$runreportButton == 0)return()
     reduc_cases <- country_projection_status_quo()[[2]][1,1] - country_projection_sim()[[2]][1,2]
@@ -2061,9 +2134,10 @@ server <- function(input, output, session){
     return(table)
   })
   
-  ##---------------------------------##  
-  ##--Table for Reductions District--##
-  ##---------------------------------##
+  
+  
+  ##--Table for Reductions District-------------------------------
+ 
   output$table_reductions_district_abs <- renderTable({
     if(input$runreportButton == 0)return()
     reduc_cases <- district_projection_status_quo()[[2]][1,1] - district_sim()[[2]][1,1] 
@@ -2094,9 +2168,9 @@ server <- function(input, output, session){
     return(table)
   })
   
-  ##----------------------------##  
-  ##--Table for Reductions TAs--##
-  ##----------------------------##
+  
+  ##--Table for Reductions TAs-------------
+
   output$table_reductions_ta_abs <- renderTable({
     req(input$ta)
     if(input$runreportButton == 0)return()
@@ -2125,9 +2199,101 @@ server <- function(input, output, session){
     return(table)
   })
   
-  ##----------------------------------------------------##
-  ##--Observe Functions---------------------------------##
-  ##----------------------------------------------------##
+ 
+  
+  
+  ##--Widgets National----------------------------
+  reduc_cases_national <- reactive({country_projection_status_quo()[[2]][1,1] - country_projection_sim()[[2]][1,2]})
+  reduc_hosp_national <- reactive({country_projection_status_quo()[[2]][1,2]  - country_projection_sim()[[2]][1,3]}) 
+  reduc_icu_national <- reactive({country_projection_status_quo()[[2]][1,3]  - country_projection_sim()[[2]][1,4]}) 
+  reduc_death_national <-  reactive({country_projection_status_quo()[[2]][1,4]  - country_projection_sim()[[2]][1,5]})
+##--Cases
+  output$cases <- renderValueBox({
+    #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Cases', '(country)')
+        , icon = icon("virus")
+        , color = "green"
+      )
+    }else{
+      valueBox(
+        formatC(reduc_cases_national(), 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Cases', '(country)')
+        , icon = icon("virus")
+        , color = "green"
+      )
+    } 
+  })
+  
+  ##--Hospitalizations 
+  output$hosp <- renderValueBox({
+    #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', '(country)')
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    }else{
+      valueBox(
+        formatC(reduc_hosp_national(), 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', '(country)')
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    } 
+  })
+  
+  ##--ICU 
+  output$icu <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in ICU', '(country)')
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    }else{
+      valueBox(
+        formatC(reduc_icu_national(), 
+                format = "d", big.mark = ',')
+        , paste('Reduction in ICU', '(country)')
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    } 
+  })
+  ##--Death 
+  output$death <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Deaths', '(country)')
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    }else{
+      valueBox(
+        formatC(reduc_death_national(), 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Deaths', '(country)')
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    } 
+  })
+  
+  ##--Observe Functions---------------------------------
+  
   
   ##--District Level Observe--##
   districtObs <- observe({
@@ -2261,5 +2427,5 @@ server <- function(input, output, session){
   })
 }
 
-##--App
+##--App-------------
 shiny::shinyApp(ui, server)
