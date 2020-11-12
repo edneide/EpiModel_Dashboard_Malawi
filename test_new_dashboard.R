@@ -157,13 +157,7 @@ body <- dashboardBody(
             br(),
             br(),
             ##--Widgets UI------------
-            fluidRow(
-              valueBoxOutput("cases", width = 3),
-              valueBoxOutput("hosp", width = 3),
-              valueBoxOutput("icu", width = 3),
-              valueBoxOutput("death", width = 3)
-              
-            ),
+            uiOutput("widgets_national"),
             fluidRow(
               column(width = 11, offset = 0.75,
                      ##
@@ -2295,7 +2289,7 @@ server <- function(input, output, session){
   ##--Observe Functions---------------------------------
   
   
-  ##--District Level Observe--##
+  ##--District Level Observe-------------
   districtObs <- observe({
     if(input$level == "District"){
       output$district_ui <- renderUI({
@@ -2335,10 +2329,11 @@ server <- function(input, output, session){
       output$national_reduction_perc <- renderUI({})
       output$national_title <- renderUI({})
       output$print_national_table_title <- renderUI({})
+      output$widgets_national <- renderUI({})
     }
   })
   
-  #--TA Level Observe--##
+  #--TA Level Observe---------------------
   taObs <- observe({
     if(input$level == "TA"){
       ##--UIs TA
@@ -2373,6 +2368,7 @@ server <- function(input, output, session){
       output$national_reduction_perc <- renderUI({})
       output$national_title <- renderUI({})
       output$print_national_table_title <- renderUI({})
+      output$widgets_national <- renderUI({})
       #--UIs district
       output$district_ui <- renderUI({})
       output$district_ui_plot1 <- renderUI({})
@@ -2387,7 +2383,7 @@ server <- function(input, output, session){
     }
   })
   
-  ##--National Observe--##
+  ##--National Observe------------------
   nationalObs <- observe({
     if(input$level == "National"){
       ##--District
@@ -2423,6 +2419,14 @@ server <- function(input, output, session){
       output$national_reduction_perc <- renderUI({tableOutput('table_reductions_country')})
       output$national_title <- renderUI({div(textOutput("plot_national_title"), style = "font-size:25px")})
       output$print_national_table_title <- renderUI({div(textOutput("national_table_title"), style = "font-size:25px")})
+      output$widgets_national <- renderUI({
+        fluidRow(
+          valueBoxOutput("cases", width = 3),
+          valueBoxOutput("hosp", width = 3),
+          valueBoxOutput("icu", width = 3),
+          valueBoxOutput("death", width = 3)
+        )
+      })
     }
   })
 }
