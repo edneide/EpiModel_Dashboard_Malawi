@@ -54,38 +54,8 @@ body <- dashboardBody(
             fluidRow(
               column(width = 11, offset = 0.75,
                      ##
-                     h3(strong("Fixed Model Parameters")),
-                     tags$hr(),
-                     column(width = 3,
-                            tags$p(strong("R0:"), "1.9"),
-                            tags$p(strong("Infectious Time (Days):"), "7"),
-                            tags$p(strong("Hospitalized Time (Days):"), "4"),
-                            tags$p(strong("ICU Time (Days):"), "8")
-                            ),
-                     column(width = 3,
-                            tags$p(strong("ICU Risk Among Hospitalized:")),
-                            tags$p(em("Pediatrics (<20):"), "5.0%"),
-                            tags$p(em("Adults (20-49):"), "14%"),
-                            tags$p(em("Elderly (50+):"), "28%")
-                            ),
-                     column(width = 3,
-                            tags$p(strong("Hospitalized Rate of Infected:")),
-                            tags$p(em("Pediatrics (<20):", "0.0090%")),
-                            tags$p(em("Adults (20-49):", "1.2%")),
-                            tags$p(em("Elderly (50+):", "5.5%"))
-                            ),
-                     column(width = 3,
-                            tags$p(strong("Fatality Rate of ICU:")),
-                            tags$p(em("Pediatrics (<20):", "9.0%")),
-                            tags$p(em("Adults (20-49):", "20%")),
-                            tags$p(em("Elderly (50+):", "59%"))
-                            ),
-                            
                      #--Policy Levers
-                     br(),
-                     br(),
-                     br(),
-                     h3(strong("Policy Levers")),
+                     h2(strong("Policy Levers")),
                      tags$hr(),
                      column(width = 4.0, strong("% Masking"),
                             tags$h6("Current %: 15 %"),
@@ -134,7 +104,6 @@ body <- dashboardBody(
                             
                      ),
                      column(width = 5,
-                            # Model Priors
                             column(width = 12,
                                    offset = 4,
                                    actionButton("runreportButton", strong("Run Report"),
@@ -150,7 +119,39 @@ body <- dashboardBody(
                                                  text-indent: -2px;
                                                  border-radius: 6px;
                                                  border-width: 2px")
-                            ))#--end column 5
+                            )),#--end column 5
+                     ##
+                     br(),
+                     br(),
+                     br(),
+                     fluidRow(column(width = 11, offset = 0.75,
+                     h2(strong("Fixed Model Parameters")),
+                     tags$hr(),
+                     column(width = 3,
+                            tags$p(strong("R0:"), "1.9"),
+                            tags$p(strong("Infectious Time (Days):"), "7"),
+                            tags$p(strong("Hospitalized Time (Days):"), "4"),
+                            tags$p(strong("ICU Time (Days):"), "8")
+                            ),
+                     column(width = 3,
+                            tags$p(strong("ICU Risk Among Hospitalized:")),
+                            tags$p(em("Pediatrics (<20):"), "5.0%"),
+                            tags$p(em("Adults (20-49):"), "14%"),
+                            tags$p(em("Elderly (50+):"), "28%")
+                            ),
+                     column(width = 3,
+                            tags$p(strong("Hospitalized Rate of Infected:")),
+                            tags$p(em("Pediatrics (<20):", "0.0090%")),
+                            tags$p(em("Adults (20-49):", "1.2%")),
+                            tags$p(em("Elderly (50+):", "5.5%"))
+                            ),
+                     column(width = 3,
+                            tags$p(strong("Fatality Rate of ICU:")),
+                            tags$p(em("Pediatrics (<20):", "9.0%")),
+                            tags$p(em("Adults (20-49):", "20%")),
+                            tags$p(em("Elderly (50+):", "59%"))
+                            )
+                     ))
                      )#--end of column 11
             ),#--end of fluidRow
             ##--Plots
