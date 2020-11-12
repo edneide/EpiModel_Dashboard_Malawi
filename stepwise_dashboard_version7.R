@@ -284,8 +284,8 @@ server <- function(input, output, session) {
     
     masking_new <- masking %>% 
       mutate(
-        masking_compliance2 = ifelse(date < today(), masking_compliance,
-                                     ifelse(between(date, today(), today() + days(input$time_intervention_mask-1)),
+        masking_compliance2 = ifelse(date <= today(), masking_compliance,
+                                     ifelse(between(date, today()+days(1), today() + days(input$time_intervention_mask)),
                                             input$mask_perc/100, masking_compliance))
       )
     
@@ -293,9 +293,9 @@ server <- function(input, output, session) {
               "inputs/masking/masking_compliance_new.csv", row.names = FALSE)
     ##-----###
     current <- current %>% 
-      mutate(reduc_new = ifelse(date < today(), reduc, 
-                                ifelse(between(date, today(), today() +
-                                                 days(input$time_intervention_dist - 1)),
+      mutate(reduc_new = ifelse(date <= today(), reduc, 
+                                ifelse(between(date, today()+days(1), today() +
+                                                 days(input$time_intervention_dist)),
                                        input$distancing_perc/100, reduc)))
     write.csv(data.frame(reduc = current$reduc_new), 
               "inputs/reductionScenarios/current_new.csv", 
