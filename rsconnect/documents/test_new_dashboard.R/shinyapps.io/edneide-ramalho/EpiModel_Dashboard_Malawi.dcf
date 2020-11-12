@@ -1,0 +1,12 @@
+name: EpiModel_Dashboard_Malawi
+title: EpiModel_Dashboard_Malawi
+username:
+account: edneide-ramalho
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3220395
+bundleId: 3853519
+url: https://edneide-ramalho.shinyapps.io/EpiModel_Dashboard_Malawi/
+when: 1605209685.83285
+asMultiple: FALSE
+asStatic: FALSE

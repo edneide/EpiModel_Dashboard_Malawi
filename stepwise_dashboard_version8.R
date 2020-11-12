@@ -54,41 +54,11 @@ body <- dashboardBody(
             fluidRow(
               column(width = 11, offset = 0.75,
                      ##
-                     h3(strong("Fixed Model Parameters")),
-                     tags$hr(),
-                     column(width = 3,
-                            tags$p(strong("R0:"), "1.9"),
-                            tags$p(strong("Infectious Time (Days):"), "7"),
-                            tags$p(strong("Hospitalized Time (Days):"), "4"),
-                            tags$p(strong("ICU Time (Days):"), "8")
-                     ),
-                     column(width = 3,
-                            tags$p(strong("ICU Risk Among Hospitalized:")),
-                            tags$p(em("Pediatrics (<20):"), "5.0%"),
-                            tags$p(em("Adults (20-49):"), "14%"),
-                            tags$p(em("Elderly (50+):"), "28%")
-                     ),
-                     column(width = 3,
-                            tags$p(strong("Hospitalized Rate of Infected:")),
-                            tags$p(em("Pediatrics (<20):", "0.0090%")),
-                            tags$p(em("Adults (20-49):", "1.2%")),
-                            tags$p(em("Elderly (50+):", "5.5%"))
-                     ),
-                     column(width = 3,
-                            tags$p(strong("Fatality Rate of ICU:")),
-                            tags$p(em("Pediatrics (<20):", "9.0%")),
-                            tags$p(em("Adults (20-49):", "20%")),
-                            tags$p(em("Elderly (50+):", "59%"))
-                     ),
-                     
                      #--Policy Levers
-                     br(),
-                     br(),
-                     br(),
-                     h3(strong("Policy Levers")),
+                     h1(strong("Policy Levers")),
                      tags$hr(),
-                     column(width = 4.0, strong("% Masking"),
-                            tags$h6("Current %: 15 %"),
+                     column(width = 3.0, h4(strong("% Masking")),
+                            tags$h5("Current %: 15 %"),
                             numericInput('mask_perc', 
                                          label = "New %",
                                          value = 15, 
@@ -99,10 +69,10 @@ body <- dashboardBody(
                                          label = "Length of Intervention\n(# Days)",
                                          value = 7,
                                          min = 7,
-                                         max = 180)
+                                         max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
                      ),
-                     column(width = 4.0, strong("% Physical Distancing"),
-                            tags$h6(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
+                     column(width = 3.0, h4(strong("% Physical Distancing")),
+                            tags$h5(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
                             numericInput('distancing_perc',
                                          label = "New %",
                                          value = 8,
@@ -112,9 +82,9 @@ body <- dashboardBody(
                                          label = "Length of Intervention\n(# Days)",
                                          value = 7,
                                          min = 7,
-                                         max = 180)
+                                         max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
                      ),
-                     column(width = 4,
+                     column(width = 3,
                             #--Time Horizon Projection
                             numericInput('projection', 'End of Model (days after today)',
                                          value = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90) , 
@@ -130,11 +100,17 @@ body <- dashboardBody(
                             ),
                             ##--Level of interest 
                             selectInput('level', 'Level of Interest',
-                                        choices = c("National", "District", "TA"))
+                                        choices = c("National", "District", "TA")),
                             
                      ),
+                     column(width = 3,
+                            ##
+                            uiOutput("district_ui"),
+                            uiOutput("district_ui2"),
+                            uiOutput("ta_ui")
+                            ##
+                     ),
                      column(width = 5,
-                            # Model Priors
                             column(width = 12,
                                    offset = 4,
                                    actionButton("runreportButton", strong("Run Report"),
@@ -150,7 +126,39 @@ body <- dashboardBody(
                                                  text-indent: -2px;
                                                  border-radius: 6px;
                                                  border-width: 2px")
-                            ))#--end column 5
+                            )),#--end column 5
+                     ##
+                     br(),
+                     br(),
+                     br(),
+                     fluidRow(column(width = 11, offset = 0.75,
+                                     h1(strong("Fixed Model Parameters")),
+                                     tags$hr(),
+                                     column(width = 3,
+                                            tags$p(h4(strong("R0:"), "1.9")),
+                                            tags$p(h4(strong("Infectious Time (Days):"), "7")),
+                                            tags$p(h4(strong("Hospitalized Time (Days):"), "4")),
+                                            tags$p(h4(strong("ICU Time (Days):"), "8"))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h4(strong("ICU Risk Among Hospitalized:"))),
+                                            tags$p(h4(em("Pediatrics (<20):"), "5.0%")),
+                                            tags$p(h4(em("Adults (20-49):"), "14%")),
+                                            tags$p(h4(em("Elderly (50+):"), "28%"))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h4(strong("Hospitalized Rate of Infected:"))),
+                                            tags$p(h4(em("Pediatrics (<20):", "0.0090%"))),
+                                            tags$p(h4(em("Adults (20-49):", "1.2%"))),
+                                            tags$p(h4(em("Elderly (50+):", "5.5%")))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h4(strong("Fatality Rate of ICU:"))),
+                                            tags$p(h4(em("Pediatrics (<20):", "9.0%"))),
+                                            tags$p(h4(em("Adults (20-49):", "20%"))),
+                                            tags$p(h4(em("Elderly (50+):", "59%")))
+                                     )
+                     ))
               )#--end of column 11
             ),#--end of fluidRow
             ##--Plots
@@ -158,13 +166,15 @@ body <- dashboardBody(
             br(),
             ##--Widgets UI------------
             uiOutput("widgets_national"),
+            uiOutput("widgets_district"),
+            uiOutput("widgets_tas"),
             fluidRow(
               column(width = 11, offset = 0.75,
-                     ##
-                     uiOutput("district_ui"),
-                     uiOutput("district_ui2"),
-                     uiOutput("ta_ui"),
-                     ##
+                     # ##
+                     # uiOutput("district_ui"),
+                     # uiOutput("district_ui2"),
+                     # uiOutput("ta_ui"),
+                     # ##
                      uiOutput("national_title"),
                      uiOutput("district_title"),
                      uiOutput("ta_title"),
@@ -197,95 +207,114 @@ body <- dashboardBody(
               )#--end of column 11
             ), ##--end fluidRow for plots
             ## Reduction tables
-            fluidRow(column(width = 11, offset = 0.75,
-                            h3(strong("Reductions")),
-                            tags$hr(),
-                            h5(strong("Absolute reduction due to implemented measures:")),
-                            uiOutput("national_reduction"),
-                            uiOutput("district_ui_reduction"),
-                            uiOutput("ta_table_reduction"),
-                            h5(strong("Percentual reduction due to implemented measures:")),
-                            uiOutput("national_reduction_perc"),
-                            uiOutput("district_ui_reduction_perc"),
-                            uiOutput("ta_table_reduction_perc")),#end of column for reduction tables
-                     column(width = 11, offset = 0.75,
-                            br(),
-                            paste("Generated results:", today()),
-                            br(),
-                            br(),
-                            uiOutput("print_national_table_title"),
-                            uiOutput("print_district_table_title"),
-                            uiOutput("print_ta_table_title"),
-                            uiOutput("national_ui5"),
-                            uiOutput("district_ui_table"),
-                            uiOutput("ta_table")
-                     )#--end of column for result table
+            fluidRow(
+              # column(width = 11, offset = 0.75,
+              # h3(strong("Reductions")),
+              #        tags$hr(),
+              #        h5(strong("Absolute reduction due to implemented measures:")),
+              #        uiOutput("national_reduction"),
+              #        uiOutput("district_ui_reduction"),
+              #        uiOutput("ta_table_reduction"),
+              #        h5(strong("Percentual reduction due to implemented measures:")),
+              #        uiOutput("national_reduction_perc"),
+              #        uiOutput("district_ui_reduction_perc"),
+              #        uiOutput("ta_table_reduction_perc")
+              # ),#end of column for reduction tables
+              column(width = 11, offset = 0.75,
+                     br(),
+                     paste("Generated results:", today()),
+                     br(),
+                     br(),
+                     uiOutput("print_national_table_title"),
+                     uiOutput("print_district_table_title"),
+                     uiOutput("print_ta_table_title"),
+                     uiOutput("national_ui5"),
+                     uiOutput("district_ui_table"),
+                     uiOutput("ta_table")
+              )#--end of column for result table
             )##end fluidRow table reductions
     ),##--end of Home
     ##--User guide
     tabItem(tabName = "user_guide",
             fluidRow(column(11, offset = 0.75,
-                            h2("Overview"),
-                            tags$p("This dynamic, epidemiological dashboard for COVID-19 
+                            h1("Overview"),
+                            tags$p(h4("This dynamic, epidemiological dashboard for COVID-19 
                                                   in Malawi generates estimated projections on number of cases, 
-                                                  hospitalizations, ICU stays and deaths based on user-defined, policy parameters."),
-                            h2("Policy levers"),
-                            img(src='policy_levers.png', align = "center", height = "35%",
-                                width = "35%"),
+                                                  hospitalizations, ICU stays and deaths based on user-defined, policy parameters.")),
+                            h1("Policy levers"),
+                            tags$ul(
+                              img(src='policy_levers.png', align = "center", height = "50%",
+                                  width = "50%")),
                             tags$div(
                               tags$ul(
-                                tags$li(strong("% Masking – "), "Percentage of population wearing a mask (Note that the model assumes mask efficacy at 50%); User may select values from 0 to 100, inclusively"),
-                                tags$li(strong("% Physical Distancing –"), "Percentage of population physical distancing (i.e., reducing number of close contacts); User may select values from 0 to 100, inclusively"),
-                                tags$li(strong("Length of Intervention (in days)  –"), "Number of days that each respective intervention will be carried out in the simulation; User may select values from 0 to 100, inclusively"),
-                                tags$li(strong("Start of model (days before today) – "), "The number of days before today (i.e., Day 1 of simulation with user-defined policy levers) displayed on the x-axes of generated line plots"),
-                                tags$li(strong("End of model (days after today) –"), "The number of days after today (i.e., Day 1 of simulation with user-defined policy levers) for which estimates in the generated outputs will reflect; User may select values from 0 to 90, inclusively"),
-                                tags$li(strong("Level of Interest –"), "Option to select whether line plots will reflect values at the national-, district- or TA-level (Note that if either district or TA is selected, user must subsequently select a specific district or TA to generate results for)"),
+                                tags$li(h4(strong("% Masking – "), "Percentage of population wearing a mask (Note that the model assumes mask efficacy at 50%); User may select values from 0 to 100, inclusively")),
+                                tags$li(h4(strong("% Physical Distancing –"), "Percentage of population physical distancing (i.e., reducing number of close contacts); User may select values from 0 to 100, inclusively")),
+                                tags$li(h4(strong("Length of Intervention (in days)  –"), "Number of days that each respective intervention will be carried out in the simulation; User may select values from 0 to 100, inclusively")),
+                                tags$li(h4(strong("Start of model (days before today) – "), "The number of days before today (i.e., Day 1 of simulation with user-defined policy levers) displayed on the x-axes of generated line plots")),
+                                tags$li(h4(strong("End of model (days after today) –"), "The number of days after today (i.e., Day 1 of simulation with user-defined policy levers) for which estimates in the generated outputs will reflect; User may select values from 0 to 90, inclusively")),
+                                tags$li(h4(strong("Level of Interest –"), "Option to select whether line plots will reflect values at the national-, district- or TA-level (Note that if either district or TA is selected, user must subsequently select a specific district or TA to generate results for)")),
                               )
                             ),
-                            tags$p("Once the user sets all parameter values for manipulative policy levers, they may click",
-                                   strong("Run Report"), "to update the model outputs based on their selections."),
-                            h2("Fixed model parameters"),
-                            tags$p("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
+                            tags$p(h4("Once the user sets all parameter values for manipulative policy levers, they may click",
+                                      strong("Run Report"), "to update the model outputs based on their selections.")),
+                            h1("Fixed model parameters"),
+                            
+                            tags$p(h4("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
                                          how it spreads and whom it is most likely to burden are fixed and therefore unavailable for user manipulation. 
-                                         These fixed model parameters are listed and sourced below:"),
+                                         These fixed model parameters are listed and sourced below:")),
                             ##add figure for fixed parameters
-                            img(src="fixed.png", height = "35%", width = "35%"),
-                            h3("Output:"),
-                            tags$p("After making their selections and re-running the model, the following outputs will be generated:"),
-                            tags$p(strong("1. Four Line Plots - "), "to depict cases, hospitalizations, ICU stays and deaths (time period spanning from user-defined model start date to 90 days later or March 31, 2021, 
-                                                  whichever occurs latest) for the baseline simulation and for the simulation based on the user-defined inputs. The black, vertical, dashed line indicates today or day 1 of the simulation. The length of the masking intervention, the physical distancing intervention and the overlap of these two interventions is visualized using blue, red and purple shading, respectively. See below: ")),
-                     img(src="plots.png", align = "center", height = "40%", width = "40%"),
+                            tags$ul(
+                              img(src="fixed.png", height = "50%", width = "50%")
+                            ),
+                            h1("Output:"),
+                            
+                            tags$p(h4("After making their selections and re-running the model, the following outputs will be generated:")),
+                            tags$ul(tags$p(h4(strong("1. Widgets displaying reductions - "), "to display the numeric and percentage decreases in cases, hospitalizations, ICU stays and deaths from the baseline to the user-defined simulation. See below:"))),
+                            tags$ul(
+                              img(src="reduction_widgets.png", align = "center", height = "80%", width = "80%")
+                            ),
+                            tags$ul(tags$p(h4(strong("2. Four Line Plots - "), "to depict cases, hospitalizations, ICU stays and deaths (time period spanning from user-defined model start date to 90 days later or March 31, 2021, 
+                                                  whichever occurs latest) for the baseline simulation and for the simulation based on the user-defined inputs. The black, vertical, dashed line indicates today or day 1 of the simulation. The length of the masking intervention, the physical distancing intervention and the overlap of these two interventions is visualized using blue, red and purple shading, respectively. See below: "))),
+                            tags$ul(img(src="plots.png", align = "center", height = "60%", width = "60%"))),
                      column(11, offset = 0.75,
-                            tags$p(strong("2. Two Reductions Tables - "), "(“Absolute reduction due to implemented measures” and “Percentual reduction due to implemented measures”) to display the numeric and percentage decreases in cases, hospitalizations, ICU stays and deaths from the baseline to the user-defined simulation. See below:"),
-                            img(src="reductions.png", align = "center", height = "35%", width = "35%"),
-                            tags$p(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"),
-                            tags$p(strong("a.	To Date –"), "Cumulative cases, hospitalizations, ICU stays and deaths"),
-                            tags$p(strong("b.	Status Quo –"), "Cumulative values up until the user-defined time horizon based on the baseline scenario policy levers (i.e., masking at 15% and physical distancing at 8%)"),
-                            tags$p(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"), 
-                            tags$p("* Note that when “National” is selected as the level of interest, this table displays district-level data. When “District” is selected as the level of interest and a particular district is specified, this table displays TA-level data for that district. When “TA” is selected as the level of interest, this table displays TA-level data for the district that the chosen TA falls within. See below:"),
-                            tags$p(strong(tags$i("District-level data when “National” is the selected level of interest"))),
-                            img(src="result_national.png", align = "center", height = "80%", width = "80%"),
+                            tags$ul(
+                              tags$p(h4(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
+                            ),
+                            tags$ul(
+                              tags$p(h4(strong("a.	To Date –"), "Cumulative cases, hospitalizations, ICU stays and deaths")),
+                              tags$p(h4(strong("b.	Status Quo –"), "Cumulative values up until the user-defined time horizon based on the baseline scenario policy levers (i.e., masking at 15% and physical distancing at 8%)")),
+                              tags$p(h4(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"))
+                            ), 
+                            
+                            tags$p(h4("* Note that when “National” is selected as the level of interest, this table displays district-level data. When “District” is selected as the level of interest and a particular district is specified, this table displays TA-level data for that district. When “TA” is selected as the level of interest, this table displays TA-level data for the district that the chosen TA falls within. See below:")),
+                            
                             br(),
                             br(),
-                            tags$p(strong(tags$i("TA-level data when “District” is the selected level of interest"))),
-                            img(src="result_district.png", align = "center", height = "80%", width = "80%"),
+                            tags$p(h4(strong(tags$i("District-level data when “National” is the selected level of interest")))),
+                            tags$ul(img(src="result_national.png", align = "center", height = "80%", width = "80%")),
                             br(),
                             br(),
-                            tags$p("For more information regarding the dashboard’s software and underlying technical program, please refer to the", strong("“Technical infrastructure guide”"), "tab.")
+                            
+                            tags$p(h4(strong(tags$i("TA-level data when “District” is the selected level of interest")))),
+                            tags$ul(img(src="result_district.png", align = "center", height = "80%", width = "80%")),
+                            br(),
+                            br(),
+                            
+                            tags$p(h4("For more information regarding the dashboard’s software and underlying technical program, please refer to the", strong("“Technical infrastructure guide”"), "tab."))
                      )##--end column 
             )##--end of fluidRow
     ), #--end of user guide
     ##--Technical guide
     tabItem(tabName = "technical_guide",
             fluidRow(column(11, offset = 0.75,
-                            h2("Technical infrastructure guide"),
-                            tags$p("Our model is coded using freely available open source R programming language (version 3.6.3) with the RStudio IDE (version 1.4.869) and is available on",
-                                   tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub."),
-                                   "Our analytic code leverages the packages tidyverse, deSolve, and ggplot2. The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "library, other additional libraries 
+                            h1("Technical infrastructure guide"),
+                            tags$p(h4("Our model is coded using freely available open source R programming language (version 3.6.3) with the RStudio IDE (version 1.4.869) and is available on",
+                                      tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub."),
+                                      "Our analytic code leverages the packages tidyverse, deSolve, and ggplot2. The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "and", strong("shinydashboard"), "libraries, other additional libraries 
                                     were used to organize the model outputs and present the visualizations on the final app, 
                                     such as readr, plotly, DT, lubridate, shinythemes and tidyverse.
                                     For user instructions and explanations of the dashboard’s interface, please refer to the", 
-                                   strong("“User guide”"), "tab.")
+                                      strong("“User guide”"), "tab."))
             )##--end of column
             )##--end of fluid row
     )#--end of technical guide
@@ -311,8 +340,8 @@ server <- function(input, output, session){
     
     masking_new <- masking %>% 
       mutate(
-        masking_compliance2 = ifelse(date < today(), masking_compliance,
-                                     ifelse(between(date, today(), today() + days(input$time_intervention_mask-1)),
+        masking_compliance2 = ifelse(date <= today(), masking_compliance,
+                                     ifelse(between(date, today()+1, today() + days(input$time_intervention_mask)),
                                             input$mask_perc/100, masking_compliance))
       )
     
@@ -320,9 +349,9 @@ server <- function(input, output, session){
               "inputs/masking/masking_compliance_new.csv", row.names = FALSE)
     ##-----###
     current <- current %>% 
-      mutate(reduc_new = ifelse(date < today(), reduc, 
+      mutate(reduc_new = ifelse(date <= today(), reduc, 
                                 ifelse(between(date, today(), today() +
-                                                 days(input$time_intervention_dist - 1)),
+                                                 days(input$time_intervention_dist)),
                                        input$distancing_perc/100, reduc)))
     write.csv(data.frame(reduc = current$reduc_new), 
               "inputs/reductionScenarios/current_new.csv", 
@@ -2201,6 +2230,13 @@ server <- function(input, output, session){
   reduc_hosp_national <- reactive({country_projection_status_quo()[[2]][1,2]  - country_projection_sim()[[2]][1,3]}) 
   reduc_icu_national <- reactive({country_projection_status_quo()[[2]][1,3]  - country_projection_sim()[[2]][1,4]}) 
   reduc_death_national <-  reactive({country_projection_status_quo()[[2]][1,4]  - country_projection_sim()[[2]][1,5]})
+  
+  reduc_cases_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,2]/country_projection_status_quo()[[2]][1,1] - 1)),2)})
+  reduc_hosp_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,3]/country_projection_status_quo()[[2]][1,2] - 1)),2)})
+  reduc_icu_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,4]/country_projection_status_quo()[[2]][1,3] - 1)),2)})
+  reduc_death_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,5]/country_projection_status_quo()[[2]][1,4] - 1)), 2)})
+  
+  
   ##--Cases
   output$cases <- renderValueBox({
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
@@ -2208,15 +2244,14 @@ server <- function(input, output, session){
       valueBox(
         formatC(0, 
                 format = "d", big.mark = ',')
-        , paste('Reduction in Cases', '(country)')
+        , paste('Reduction in Cases', '(National)')
         , icon = icon("virus")
         , color = "green"
       )
     }else{
       valueBox(
-        formatC(reduc_cases_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Cases', '(country)')
+        paste0(formatC(reduc_cases_national(), format = "d", big.mark = ','), " (", reduc_cases_national_perc(), "%)")
+        , paste('Reduction in Cases', '(National)')
         , icon = icon("virus")
         , color = "green"
       )
@@ -2228,17 +2263,15 @@ server <- function(input, output, session){
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
     if(input$runreportButton == 0){
       valueBox(
-        formatC(0, 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Hospitalizations', '(country)')
+        formatC(0, format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', '(National)')
         , icon = icon("hospital-user")
         , color = "orange"
       )
     }else{
       valueBox(
-        formatC(reduc_hosp_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Hospitalizations', '(country)')
+        paste0(formatC(reduc_hosp_national(), format = "d", big.mark = ','), " (", reduc_hosp_national_perc(), "%)")
+        , paste('Reduction in Hospitalizations', '(National)')
         , icon = icon("hospital-user")
         , color = "orange"
       )
@@ -2251,15 +2284,15 @@ server <- function(input, output, session){
       valueBox(
         formatC(0, 
                 format = "d", big.mark = ',')
-        , paste('Reduction in ICU', '(country)')
+        , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
       )
     }else{
       valueBox(
-        formatC(reduc_icu_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in ICU', '(country)')
+        paste0(formatC(reduc_icu_national(), 
+                       format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)")
+        , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
       )
@@ -2271,20 +2304,233 @@ server <- function(input, output, session){
       valueBox(
         formatC(0, 
                 format = "d", big.mark = ',')
-        , paste('Reduction in Deaths', '(country)')
+        , paste('Reduction in Deaths', '(National)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
       )
     }else{
       valueBox(
-        formatC(reduc_death_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Deaths', '(country)')
+        paste0(formatC(reduc_death_national(), 
+                       format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)")
+        , paste('Reduction in Deaths', '(National)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
       )
     } 
   })
+  
+  
+  
+  
+  
+  ##--Widgets Districts----------------------------
+  
+  reduc_cases_districts <- reactive({district_projection_status_quo()[[2]][1,1] - district_sim()[[2]][1,1]}) 
+  reduc_hosp_districts <- reactive({district_projection_status_quo()[[2]][1,2]  - district_sim()[[2]][1,2]})  
+  reduc_icu_districts <- reactive({district_projection_status_quo()[[2]][1,3]  - district_sim()[[2]][1,3]})  
+  reduc_death_districts <-  reactive({district_projection_status_quo()[[2]][1,4]  - district_sim()[[2]][1,4]}) 
+  
+  reduc_cases_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,1]/district_projection_status_quo()[[2]][1,1] - 1)),2)}) 
+  reduc_hosp_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,2]/district_projection_status_quo()[[2]][1,2] - 1)),2)}) 
+  reduc_icu_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,3]/district_projection_status_quo()[[2]][1,3] - 1)),2)}) 
+  reduc_death_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,4]/district_projection_status_quo()[[2]][1,4] - 1)),2)}) 
+  
+  
+  ##--Cases
+  output$cases_districts <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Cases', "")
+        , icon = icon("virus")
+        , color = "green"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_cases_districts(), format = "d", big.mark = ','), " (", 
+               reduc_cases_districts_perc(), "%)")
+        , paste0('Reduction in Cases', " (", input$district, ")")
+        , icon = icon("virus")
+        , color = "green"
+      )
+    } 
+  })
+  
+  ##--Hospitalizations 
+  output$hosp_districts <- renderValueBox({
+    #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', "")
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_hosp_districts(), format = "d", big.mark = ','), " (", 
+               reduc_hosp_districts_perc(), "%)")
+        , paste0('Reduction in Hospitalizations', " (", input$district, ")")
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    } 
+  })
+  
+  ##--ICU 
+  output$icu_districts <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in ICU', '')
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_icu_districts(), 
+                       format = "d", big.mark = ','), " (", 
+               reduc_icu_districts_perc(), "%)")
+        , paste0('Reduction in ICU', " (", input$district, ")")
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    } 
+  })
+  ##--Death 
+  output$death_districts <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Deaths', '')
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_death_districts(), 
+                       format = "d", big.mark = ','), " (", 
+               reduc_death_districts_perc(), "%)")
+        , paste0('Reduction in Deaths', " (", input$district, ")")
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    } 
+  })
+  
+  
+  
+  
+  
+  
+  ##--Widgets TAs----------------------------
+  reduc_cases_ta <- reactive({abs(ta_simulation_status_quo()[[2]][1,2] - ta_simulation()[[2]][1,2])}) 
+  reduc_hosp_ta <- reactive({abs(ta_simulation_status_quo()[[2]][1,3] - ta_simulation()[[2]][1,3])}) 
+  reduc_icu_ta <- reactive({abs(ta_simulation_status_quo()[[2]][1,4] - ta_simulation()[[2]][1,4])})
+  reduc_death_ta <-  reactive({abs(ta_simulation_status_quo()[[2]][1,5] - ta_simulation()[[2]][1,5])}) 
+  
+  reduc_cases_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,2] /ta_simulation_status_quo()[[2]][1,2] - 1)),2)})
+  reduc_hosp_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,3] /ta_simulation_status_quo()[[2]][1,3] - 1)),2)})
+  reduc_icu_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,4] /ta_simulation_status_quo()[[2]][1,4] - 1)),2)})
+  reduc_death_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,5] /ta_simulation_status_quo()[[2]][1,5] - 1)),2)})
+  
+  
+  ##--Cases
+  output$cases_tas <- renderValueBox({
+    #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Cases', "")
+        , icon = icon("virus")
+        , color = "green"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_cases_ta(), format = "d", big.mark = ','), " (", 
+               reduc_cases_ta_perc(), "%)")
+        , paste0('Reduction in Cases', " (", input$ta, ")")
+        , icon = icon("virus")
+        , color = "green"
+      )
+    } 
+  })
+  
+  ##--Hospitalizations 
+  output$hosp_tas <- renderValueBox({
+    #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', "")
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_hosp_ta(), format = "d", big.mark = ','), " (", 
+               reduc_cases_ta_perc(), "%)")
+        , paste0('Reduction in Hospitalizations', " (", input$ta, ")")
+        , icon = icon("hospital-user")
+        , color = "orange"
+      )
+    } 
+  })
+  
+  ##--ICU 
+  output$icu_tas <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in ICU', '')
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_icu_ta(), 
+                       format = "d", big.mark = ','), " (", 
+               reduc_cases_ta_perc(), "%)")
+        , paste0('Reduction in ICU', " (", input$ta, ")")
+        , icon = icon("hospital")
+        , color = "red"
+      )
+    } 
+  })
+  ##--Death 
+  output$death_tas <- renderValueBox({
+    if(input$runreportButton == 0){
+      valueBox(
+        formatC(0, 
+                format = "d", big.mark = ',')
+        , paste('Reduction in Deaths', '')
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    }else{
+      valueBox(
+        paste0(formatC(reduc_cases_ta(), 
+                       format = "d", big.mark = ','), " (", 
+               reduc_cases_ta_perc(), "%)")
+        , paste0('Reduction in Deaths', " (", input$ta, ")")
+        , icon = icon("stats", lib = 'glyphicon')
+        , color = "black"
+      )
+    } 
+  })
+  
+  
+  
+  
+  
+  
+  
+  
   
   ##--Observe Functions---------------------------------
   
@@ -2307,6 +2553,14 @@ server <- function(input, output, session){
       output$district_ui_reduction_perc <- renderUI({tableOutput("table_reductions_districts")})
       output$district_title <- renderUI({div(textOutput("plot_district_title"), style = "font-size:25px")})
       output$print_district_table_title <- renderUI({div(textOutput("table_district_title"), style = "font-size:25px")}) 
+      output$widgets_district <- renderUI({
+        fluidRow(
+          valueBoxOutput("cases_districts", width = 3),
+          valueBoxOutput("hosp_districts", width = 3),
+          valueBoxOutput("icu_districts", width = 3),
+          valueBoxOutput("death_districts", width = 3)
+        )
+      })
       #--UI TA
       output$ta_ui <- renderUI({})
       output$ta_plot1 <- renderUI({})
@@ -2319,6 +2573,7 @@ server <- function(input, output, session){
       output$ta_title <- renderUI({})
       output$district_ui2 <- renderUI({})
       output$print_ta_table_title <- renderUI({})
+      output$widgets_tas <- renderUI({})
       #--UI National
       output$national_ui <- renderUI({})
       output$national_ui2 <- renderUI({})
@@ -2357,6 +2612,14 @@ server <- function(input, output, session){
       output$ta_table_reduction_perc <- renderUI({tableOutput("table_reductions_ta_perc")})
       output$ta_title <- renderUI({div(textOutput("plot_ta_title"), style = "font-size:25px")})
       output$print_ta_table_title <- renderUI({div(textOutput("ta_table_title"), style = "font-size:25px")})
+      output$widgets_tas <- renderUI({
+        fluidRow(
+          valueBoxOutput("cases_tas", width = 3),
+          valueBoxOutput("hosp_tas", width = 3),
+          valueBoxOutput("icu_tas", width = 3),
+          valueBoxOutput("death_tas", width = 3)
+        )
+      })
       
       ##--UIs National
       output$national_ui <- renderUI({})
@@ -2380,6 +2643,7 @@ server <- function(input, output, session){
       output$district_ui_reduction_perc <- renderUI({})
       output$district_title <- renderUI({})
       output$print_district_table_title <- renderUI({})
+      output$widgets_district <- renderUI({})
     }
   })
   
@@ -2397,6 +2661,7 @@ server <- function(input, output, session){
       output$district_ui_reduction_perc <- renderUI({})
       output$district_title <- renderUI({})
       output$print_district_table_title <- renderUI({})
+      output$widgets_district <- renderUI({})
       ##--TA
       output$ta_ui <- renderUI({})
       output$ta_plot1 <- renderUI({})
@@ -2409,6 +2674,7 @@ server <- function(input, output, session){
       output$ta_title <- renderUI({})
       output$district_ui2 <- renderUI({})
       output$print_ta_table_title <- renderUI({})
+      output$widgets_tas <- renderUI({})
       ##--National
       output$national_ui <- renderUI({plotlyOutput("fig")})
       output$national_ui2 <- renderUI({plotlyOutput("fig_country2")})
