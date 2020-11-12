@@ -2202,22 +2202,28 @@ server <- function(input, output, session){
   reduc_hosp_national <- reactive({country_projection_status_quo()[[2]][1,2]  - country_projection_sim()[[2]][1,3]}) 
   reduc_icu_national <- reactive({country_projection_status_quo()[[2]][1,3]  - country_projection_sim()[[2]][1,4]}) 
   reduc_death_national <-  reactive({country_projection_status_quo()[[2]][1,4]  - country_projection_sim()[[2]][1,5]})
-##--Cases
+
+  reduc_cases_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,2]/country_projection_status_quo()[[2]][1,1] - 1)),2)})
+  reduc_hosp_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,3]/country_projection_status_quo()[[2]][1,2] - 1)),2)})
+  reduc_icu_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,4]/country_projection_status_quo()[[2]][1,3] - 1)),2)})
+  reduc_death_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,5]/country_projection_status_quo()[[2]][1,4] - 1)), 2)})
+
+  
+  ##--Cases
   output$cases <- renderValueBox({
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
     if(input$runreportButton == 0){
       valueBox(
         formatC(0, 
                 format = "d", big.mark = ',')
-        , paste('Reduction in Cases', '(country)')
+        , paste('Reduction in Cases', '(National)')
         , icon = icon("virus")
         , color = "green"
       )
     }else{
       valueBox(
-        formatC(reduc_cases_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Cases', '(country)')
+        paste0(formatC(reduc_cases_national(), format = "d", big.mark = ','), " (", reduc_cases_national_perc(), "%)")
+        , paste('Reduction in Cases', '(National)')
         , icon = icon("virus")
         , color = "green"
       )
@@ -2229,17 +2235,15 @@ server <- function(input, output, session){
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
     if(input$runreportButton == 0){
       valueBox(
-        formatC(0, 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Hospitalizations', '(country)')
+        formatC(0, format = "d", big.mark = ',')
+        , paste('Reduction in Hospitalizations', '(National)')
         , icon = icon("hospital-user")
         , color = "orange"
       )
     }else{
       valueBox(
-        formatC(reduc_hosp_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in Hospitalizations', '(country)')
+        paste0(formatC(reduc_hosp_national(), format = "d", big.mark = ','), " (", reduc_hosp_national_perc(), "%)")
+        , paste('Reduction in Hospitalizations', '(National)')
         , icon = icon("hospital-user")
         , color = "orange"
       )
@@ -2252,15 +2256,15 @@ server <- function(input, output, session){
       valueBox(
         formatC(0, 
                 format = "d", big.mark = ',')
-        , paste('Reduction in ICU', '(country)')
+        , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
       )
     }else{
       valueBox(
-        formatC(reduc_icu_national(), 
-                format = "d", big.mark = ',')
-        , paste('Reduction in ICU', '(country)')
+        paste0(formatC(reduc_icu_national(), 
+                format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)")
+        , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
       )
@@ -2278,8 +2282,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        formatC(reduc_death_national(), 
-                format = "d", big.mark = ',')
+        paste0(formatC(reduc_death_national(), 
+                format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)")
         , paste('Reduction in Deaths', '(country)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
