@@ -133,7 +133,7 @@ body <- dashboardBody(
                             ),
                             textOutput("stop_function"),
                             
-                            tags$p("The user may select up to 90 days. Model projections will cap at 90 days from today or March 31, 2021, whichever occurs latest."),
+                            tags$p("The user may select up to 90 days."),
                             
                             
                             
