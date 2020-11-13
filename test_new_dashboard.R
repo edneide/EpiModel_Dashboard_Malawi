@@ -36,7 +36,7 @@ sidebar <- dashboardSidebar(
     menuItem("Home",
              tabName = "home",
              icon = icon('dashboard')
-             ),
+    ),
     menuItem("User guide",
              tabName = "user_guide",
              icon = icon('user')),
@@ -53,7 +53,7 @@ body <- dashboardBody(
     tabItem(tabName = "home",
             fluidRow(
               column(width =11, offset = 0.5,
-              h1(strong("Epidemiological Model for COVID-19 - Malawi"))
+                     h1(strong("Epidemiological Model for COVID-19 - Malawi"))
               )
             ),
             ##--Plots UI----------------
@@ -63,13 +63,7 @@ body <- dashboardBody(
                      uiOutput("national_title"),
                      uiOutput("district_title"),
                      uiOutput("ta_title"),
-                     ##--Set x axis for plot
-                     sliderInput('begin_plot', 'Start of Model (days before today)',
-                                 min = 15, 
-                                 max = as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")), 
-                                 value = 15, 
-                                 step = round((as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")) - 15)/10)
-                     ),
+                     
                      column(width = 6,
                             uiOutput("national_ui"),
                             uiOutput("district_ui_plot1"),
@@ -95,14 +89,14 @@ body <- dashboardBody(
                             uiOutput("district_ui_plot4"),
                             uiOutput("ta_plot4")
                      )#--end column 6
-                     ),
+              ),
               column(width=5,
                      #"Police levers"
                      #--Policy Levers
                      h3(strong("Policy Levers")),
                      tags$hr(),
                      column(width = 3.0, h5(strong("% Masking")),
-                           
+                            
                             tags$h5("Current %: 15 %"),
                             numericInput('mask_perc', 
                                          label = "New %",
@@ -140,7 +134,7 @@ body <- dashboardBody(
                             textOutput("stop_function"),
                             
                             tags$p("The user may select up to 90 days. Model projections will cap at 90 days from today or March 31, 2021, whichever occurs latest."),
-          
+                            
                             
                             
                      ),
@@ -153,7 +147,7 @@ body <- dashboardBody(
                             uiOutput("district_ui2"),
                             uiOutput("ta_ui")
                             ##
-                            ),
+                     ),
                      column(width = 12,
                             actionButton("runreportButton", strong("Run Report"),
                                          icon = icon("redo"),
@@ -171,35 +165,42 @@ body <- dashboardBody(
                      ),
                      ##--Fixed parameters
                      fluidRow(column(width = 12,
-                     h3(strong("Fixed Model Parameters")),
-                     tags$hr(),
-                     column(width = 3,
-                            tags$p(h5(strong("R0:"), "1.9")),
-                            tags$p(h5(strong("Infectious Time (Days):"), "7")),
-                            tags$p(h5(strong("Hospitalized Time (Days):"), "4")),
-                            tags$p(h5(strong("ICU Time (Days):"), "8"))
+                                     h3(strong("Fixed Model Parameters")),
+                                     tags$hr(),
+                                     column(width = 3,
+                                            tags$p(h5(strong("R0:"), "1.9")),
+                                            tags$p(h5(strong("Infectious Time (Days):"), "7")),
+                                            tags$p(h5(strong("Hospitalized Time (Days):"), "4")),
+                                            tags$p(h5(strong("ICU Time (Days):"), "8"))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h5(strong("ICU Risk Among Hospitalized:"))),
+                                            tags$p(h5(em("Pediatrics (<20):"), "5.0%")),
+                                            tags$p(h5(em("Adults (20-49):"), "14%")),
+                                            tags$p(h5(em("Elderly (50+):"), "28%"))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h5(strong("Hospitalized Rate of Infected:"))),
+                                            tags$p(h5(em("Pediatrics (<20):", "0.0090%"))),
+                                            tags$p(h5(em("Adults (20-49):", "1.2%"))),
+                                            tags$p(h5(em("Elderly (50+):", "5.5%")))
+                                     ),
+                                     column(width = 3,
+                                            tags$p(h5(strong("Fatality Rate of ICU:"))),
+                                            tags$p(h5(em("Pediatrics (<20):", "9.0%"))),
+                                            tags$p(h5(em("Adults (20-49):", "20%"))),
+                                            tags$p(h5(em("Elderly (50+):", "59%")))
+                                     ))
                      ),
-                     column(width = 3,
-                            tags$p(h5(strong("ICU Risk Among Hospitalized:"))),
-                            tags$p(h5(em("Pediatrics (<20):"), "5.0%")),
-                            tags$p(h5(em("Adults (20-49):"), "14%")),
-                            tags$p(h5(em("Elderly (50+):"), "28%"))
-                     ),
-                     column(width = 3,
-                            tags$p(h5(strong("Hospitalized Rate of Infected:"))),
-                            tags$p(h5(em("Pediatrics (<20):", "0.0090%"))),
-                            tags$p(h5(em("Adults (20-49):", "1.2%"))),
-                            tags$p(h5(em("Elderly (50+):", "5.5%")))
-                     ),
-                     column(width = 3,
-                            tags$p(h5(strong("Fatality Rate of ICU:"))),
-                            tags$p(h5(em("Pediatrics (<20):", "9.0%"))),
-                            tags$p(h5(em("Adults (20-49):", "20%"))),
-                            tags$p(h5(em("Elderly (50+):", "59%")))
-                     ))
-                     ),
-                     )
+              )
             ),#--end of fluid row
+            ##--Set x axis for plot
+            sliderInput('begin_plot', 'Start of Model (days before today)',
+                        min = 15, 
+                        max = as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")), 
+                        value = 15, 
+                        step = 1
+            ),
             ##--Widgets UI------------
             uiOutput("widgets_national"),
             uiOutput("widgets_district"),
@@ -211,9 +212,9 @@ body <- dashboardBody(
                      column(width = 5,
                             column(width = 12,
                                    offset = 4,
-                                  
+                                   
                             )),#--end column 5
-                     )#--end of column 11
+              )#--end of column 11
             ),#--end of fluidRow
             ## Reduction tables
             fluidRow(
@@ -228,9 +229,9 @@ body <- dashboardBody(
                      uiOutput("national_ui5"),
                      uiOutput("district_ui_table"),
                      uiOutput("ta_table")
-                     )#--end of column for result table
+              )#--end of column for result table
             )##end fluidRow table reductions
-            ),##--end of Home
+    ),##--end of Home
     ##--User guide
     tabItem(tabName = "user_guide",
             fluidRow(column(11, offset = 0.75,
@@ -240,8 +241,8 @@ body <- dashboardBody(
                                                   hospitalizations, ICU stays and deaths based on user-defined, policy parameters.")),
                             h1("Policy levers"),
                             tags$ul(
-                            img(src='policy_levers2.png', align = "center", height = "50%",
-                                width = "50%")),
+                              img(src='policy_levers2.png', align = "center", height = "50%",
+                                  width = "50%")),
                             tags$div(
                               tags$ul(
                                 tags$li(h4(strong("% Masking – "), "Percentage of population wearing a mask (Note that the model assumes mask efficacy at 50%); User may select values from 0 to 100, inclusively")),
@@ -253,7 +254,7 @@ body <- dashboardBody(
                               )
                             ),
                             tags$p(h4("Once the user sets all parameter values for manipulative policy levers, they may click",
-                                   strong("Run Report"), "to update the model outputs based on their selections.")),
+                                      strong("Run Report"), "to update the model outputs based on their selections.")),
                             h1("Fixed model parameters"),
                             
                             tags$p(h4("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
@@ -261,7 +262,7 @@ body <- dashboardBody(
                                          These fixed model parameters are listed and sourced below:")),
                             ##add figure for fixed parameters
                             tags$ul(
-                            img(src="fixed.png", height = "50%", width = "50%")
+                              img(src="fixed.png", height = "50%", width = "50%")
                             ),
                             h1("Output:"),
                             
@@ -275,16 +276,16 @@ body <- dashboardBody(
                             tags$ul(img(src="plot2.png", align = "center", height = "60%", width = "60%"))),
                      column(11, offset = 0.75,
                             tags$ul(
-                            tags$p(h4(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
+                              tags$p(h4(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
                             ),
                             tags$ul(
-                            tags$p(h4(strong("a.	To Date –"), "Cumulative cases, hospitalizations, ICU stays and deaths")),
-                            tags$p(h4(strong("b.	Status Quo –"), "Cumulative values up until the user-defined time horizon based on the baseline scenario policy levers (i.e., masking at 15% and physical distancing at 8%)")),
-                            tags$p(h4(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"))
+                              tags$p(h4(strong("a.	To Date –"), "Cumulative cases, hospitalizations, ICU stays and deaths")),
+                              tags$p(h4(strong("b.	Status Quo –"), "Cumulative values up until the user-defined time horizon based on the baseline scenario policy levers (i.e., masking at 15% and physical distancing at 8%)")),
+                              tags$p(h4(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"))
                             ), 
                             
                             tags$p(h4("* Note that when “National” is selected as the level of interest, this table displays district-level data. When “District” is selected as the level of interest and a particular district is specified, this table displays TA-level data for that district. When “TA” is selected as the level of interest, this table displays TA-level data for the district that the chosen TA falls within. See below:")),
-                        
+                            
                             br(),
                             br(),
                             tags$p(h4(strong("District-level data when “National” is the selected level of interest"))),
@@ -300,7 +301,7 @@ body <- dashboardBody(
                             tags$p(h4("For more information regarding the dashboard’s software and underlying technical program, please refer to the", strong("“Technical infrastructure guide”"), "tab."))
                      )##--end column 
             )##--end of fluidRow
-            ), #--end of user guide
+    ), #--end of user guide
     ##--Technical guide
     tabItem(tabName = "technical_guide",
             fluidRow(column(11, offset = 0.75,
@@ -312,20 +313,20 @@ body <- dashboardBody(
                                     were used to organize the model outputs and present the visualizations on the final app, 
                                     such as readr, plotly, DT, lubridate, shinythemes and tidyverse.
                                     For user instructions and explanations of the dashboard’s interface, please refer to the", 
-                                   strong("“User guide”"), "tab.")
-                                   ),
+                                      strong("“User guide”"), "tab.")
+                            ),
                             tags$p(h4(strong("The code for this epidemiological dashboard can be found in the following link:",
                                              tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub.")))
                             )
-                     
-                     
+                            
+                            
             )##--end of column
             )##--end of fluid row
-            )#--end of technical guide
+    )#--end of technical guide
   )#--end of tabItems
 )#--end of dashboardBody
 
-                 
+
 ##UI------------------
 
 ui <- dashboardPage(skin = "purple", header = header, sidebar = sidebar, body = body)
@@ -336,7 +337,7 @@ ui <- dashboardPage(skin = "purple", header = header, sidebar = sidebar, body = 
 ##--SERVER--##
 ##----------##
 server <- function(input, output, session){
-
+  
   ##---------------------------------------------------##
   #---Creating the inputs .csv's based on user's selection 
   restrictionsInput <- observe({
@@ -609,7 +610,7 @@ server <- function(input, output, session){
   
   
   ##--Simulation Baseline--------------------
- 
+  
   simulation_baseline <- reactive({
     
     if(input$runreportButton == 0) return()
@@ -989,7 +990,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash %>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -999,7 +1001,7 @@ server <- function(input, output, session){
                       line = list(color = 'rgb(0, 102, 0)')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% layout(
@@ -1016,7 +1018,8 @@ server <- function(input, output, session){
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1030,7 +1033,7 @@ server <- function(input, output, session){
                       line = list(color = 'rgb(0, 102, 0)')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% layout(
@@ -1062,7 +1065,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1076,7 +1080,7 @@ server <- function(input, output, session){
                       line = list(color = 'orange')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Intervention', 
@@ -1093,7 +1097,8 @@ server <- function(input, output, session){
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1107,7 +1112,7 @@ server <- function(input, output, session){
                       line = list(color = 'orange')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Hospitalizations_sim, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
@@ -1139,7 +1144,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ ICU_sq,
@@ -1149,7 +1155,7 @@ server <- function(input, output, session){
                       line = list(color = 'red')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'Intervention', line = list(color = 'pink'))
@@ -1164,7 +1170,8 @@ server <- function(input, output, session){
       return(fig)
     }else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1179,7 +1186,7 @@ server <- function(input, output, session){
                       line = list(color = 'red')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'Intervention', line = list(color = 'pink'))
@@ -1211,7 +1218,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Death_sq,
@@ -1221,7 +1229,7 @@ server <- function(input, output, session){
                       line = list(color = 'black')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
@@ -1236,7 +1244,8 @@ server <- function(input, output, session){
       return(fig)
     } else{
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
-        filter(date >= today() - days(input$begin_plot))
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1251,7 +1260,7 @@ server <- function(input, output, session){
                       line = list(color = 'black')
                       # width = 450,
                       # height = 200
-                      )
+      )
       fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ Death_sim, name = 'Intervention', line = list(color = 'grey'))
@@ -1278,9 +1287,9 @@ server <- function(input, output, session){
     }
   })
   
-
+  
   ##--Plots District---------------------
-
+  
   #--Title
   output$plot_district_title <- renderText({
     paste0("Graphs at District Level: ", input$district)
@@ -1292,7 +1301,8 @@ server <- function(input, output, session){
     #data_final_plot <- district_projection_status_quo()[[1]]
     data_final_plot <- cbind(district_projection_status_quo()[[1]], 
                              district_sim()[[1]][,-c(1,2)]) %>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1307,7 +1317,7 @@ server <- function(input, output, session){
                     line = list(color = 'rgb(0, 102, 0)')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     
@@ -1338,7 +1348,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot)&
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1353,7 +1364,7 @@ server <- function(input, output, session){
                     line = list(color = 'orange')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
@@ -1383,7 +1394,8 @@ server <- function(input, output, session){
     
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot)&
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1398,7 +1410,7 @@ server <- function(input, output, session){
                     line = list(color = 'red')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (Intervention)', line = list(color = 'pink'))
@@ -1429,7 +1441,8 @@ server <- function(input, output, session){
     if(input$runreportButton == 0) return()
     #data_final_plot <- district_projection_status_quo()[[1]]
     data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1444,7 +1457,7 @@ server <- function(input, output, session){
                     line = list(color = 'black')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
@@ -1470,7 +1483,7 @@ server <- function(input, output, session){
     return(fig)
   })
   
- 
+  
   ##--Plots TA------------------
   
   ##--Title
@@ -1482,7 +1495,8 @@ server <- function(input, output, session){
     req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     ##--Changing title
     title <- vector(mode = "character", length = 1)
     if(data_final_plot$Cases_sq/100 > 99){
@@ -1536,7 +1550,8 @@ server <- function(input, output, session){
     req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1551,7 +1566,7 @@ server <- function(input, output, session){
                     line = list(color = 'orange')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
@@ -1582,7 +1597,8 @@ server <- function(input, output, session){
     req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1597,7 +1613,7 @@ server <- function(input, output, session){
                     line = list(color = 'red')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ ICU, name = 'Intervention', line = list(color = 'pink'))
@@ -1629,7 +1645,8 @@ server <- function(input, output, session){
     req(input$district2, input$ta)
     if(input$runreportButton == 0) return()
     data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot))
+      filter(date >= today() - days(input$begin_plot) &
+               date <= today() + days(input$projection))
     x_start <- data_final_plot$date[which(data_final_plot$date == today())]
     x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
     x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1645,7 +1662,7 @@ server <- function(input, output, session){
                     line = list(color = 'black')
                     # width = 450,
                     # height = 200
-                    )
+    )
     fig <- fig %>% layout(xaxis = list(title = ""),
                           yaxis = list(title = ''))
     fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
@@ -1982,7 +1999,7 @@ server <- function(input, output, session){
     )
   )
   
- 
+  
   ##--Table TAs-------------------
   
   #--Title
@@ -2132,9 +2149,9 @@ server <- function(input, output, session){
     )
   )
   
-   
+  
   ##--Table for Reductions National--------------
- 
+  
   output$table_reductions_country_abs <- renderTable({
     if(input$runreportButton == 0)return()
     reduc_cases <- country_projection_status_quo()[[2]][1,1] - country_projection_sim()[[2]][1,2]
@@ -2168,7 +2185,7 @@ server <- function(input, output, session){
   
   
   ##--Table for Reductions District-------------------------------
- 
+  
   output$table_reductions_district_abs <- renderTable({
     if(input$runreportButton == 0)return()
     reduc_cases <- district_projection_status_quo()[[2]][1,1] - district_sim()[[2]][1,1] 
@@ -2201,7 +2218,7 @@ server <- function(input, output, session){
   
   
   ##--Table for Reductions TAs-------------
-
+  
   output$table_reductions_ta_abs <- renderTable({
     req(input$ta)
     if(input$runreportButton == 0)return()
@@ -2230,7 +2247,7 @@ server <- function(input, output, session){
     return(table)
   })
   
- 
+  
   
   
   ##--Widgets National----------------------------
@@ -2238,12 +2255,12 @@ server <- function(input, output, session){
   reduc_hosp_national <- reactive({country_projection_status_quo()[[2]][1,2]  - country_projection_sim()[[2]][1,3]}) 
   reduc_icu_national <- reactive({country_projection_status_quo()[[2]][1,3]  - country_projection_sim()[[2]][1,4]}) 
   reduc_death_national <-  reactive({country_projection_status_quo()[[2]][1,4]  - country_projection_sim()[[2]][1,5]})
-
+  
   reduc_cases_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,2]/country_projection_status_quo()[[2]][1,1] - 1)),2)})
   reduc_hosp_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,3]/country_projection_status_quo()[[2]][1,2] - 1)),2)})
   reduc_icu_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,4]/country_projection_status_quo()[[2]][1,3] - 1)),2)})
   reduc_death_national_perc <- reactive({round(abs(100*(country_projection_sim()[[2]][1,5]/country_projection_status_quo()[[2]][1,4] - 1)), 2)})
-
+  
   
   ##--Cases
   output$cases <- renderValueBox({
@@ -2299,7 +2316,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         paste0(formatC(reduc_icu_national(), 
-                format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)")
+                       format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)")
         , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
@@ -2319,7 +2336,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         paste0(formatC(reduc_death_national(), 
-                format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)")
+                       format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)")
         , paste('Reduction in Deaths', '(National)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2333,17 +2350,17 @@ server <- function(input, output, session){
   
   ##--Widgets Districts----------------------------
   
-    reduc_cases_districts <- reactive({district_projection_status_quo()[[2]][1,1] - district_sim()[[2]][1,1]}) 
-    reduc_hosp_districts <- reactive({district_projection_status_quo()[[2]][1,2]  - district_sim()[[2]][1,2]})  
-    reduc_icu_districts <- reactive({district_projection_status_quo()[[2]][1,3]  - district_sim()[[2]][1,3]})  
-    reduc_death_districts <-  reactive({district_projection_status_quo()[[2]][1,4]  - district_sim()[[2]][1,4]}) 
-
-    reduc_cases_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,1]/district_projection_status_quo()[[2]][1,1] - 1)),2)}) 
-    reduc_hosp_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,2]/district_projection_status_quo()[[2]][1,2] - 1)),2)}) 
-    reduc_icu_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,3]/district_projection_status_quo()[[2]][1,3] - 1)),2)}) 
-    reduc_death_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,4]/district_projection_status_quo()[[2]][1,4] - 1)),2)}) 
-
-    
+  reduc_cases_districts <- reactive({district_projection_status_quo()[[2]][1,1] - district_sim()[[2]][1,1]}) 
+  reduc_hosp_districts <- reactive({district_projection_status_quo()[[2]][1,2]  - district_sim()[[2]][1,2]})  
+  reduc_icu_districts <- reactive({district_projection_status_quo()[[2]][1,3]  - district_sim()[[2]][1,3]})  
+  reduc_death_districts <-  reactive({district_projection_status_quo()[[2]][1,4]  - district_sim()[[2]][1,4]}) 
+  
+  reduc_cases_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,1]/district_projection_status_quo()[[2]][1,1] - 1)),2)}) 
+  reduc_hosp_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,2]/district_projection_status_quo()[[2]][1,2] - 1)),2)}) 
+  reduc_icu_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,3]/district_projection_status_quo()[[2]][1,3] - 1)),2)}) 
+  reduc_death_districts_perc <- reactive({round(abs(100*(district_sim()[[2]][1,4]/district_projection_status_quo()[[2]][1,4] - 1)),2)}) 
+  
+  
   ##--Cases
   output$cases_districts <- renderValueBox({
     if(input$runreportButton == 0){
@@ -2439,12 +2456,12 @@ server <- function(input, output, session){
   reduc_hosp_ta <- reactive({abs(ta_simulation_status_quo()[[2]][1,3] - ta_simulation()[[2]][1,3])}) 
   reduc_icu_ta <- reactive({abs(ta_simulation_status_quo()[[2]][1,4] - ta_simulation()[[2]][1,4])})
   reduc_death_ta <-  reactive({abs(ta_simulation_status_quo()[[2]][1,5] - ta_simulation()[[2]][1,5])}) 
-
+  
   reduc_cases_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,2] /ta_simulation_status_quo()[[2]][1,2] - 1)),2)})
   reduc_hosp_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,3] /ta_simulation_status_quo()[[2]][1,3] - 1)),2)})
   reduc_icu_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,4] /ta_simulation_status_quo()[[2]][1,4] - 1)),2)})
   reduc_death_ta_perc <- reactive({round(abs(100*(ta_simulation()[[2]][1,5] /ta_simulation_status_quo()[[2]][1,5] - 1)),2)})
-
+  
   
   ##--Cases
   output$cases_tas <- renderValueBox({
@@ -2555,9 +2572,9 @@ server <- function(input, output, session){
     shinyFeedback::feedbackWarning(
       "projection", !result, 
       paste0("Please select a number ", "≤", " ", min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
-      )
-      req(result)
-      input$projection
+    )
+    req(result)
+    input$projection
   })
   
   output$stop_function <- renderText(paste0("Selected number: ", stop_function()))
