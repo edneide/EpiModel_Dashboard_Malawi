@@ -272,7 +272,7 @@ body <- dashboardBody(
                             ),
                             tags$ul(tags$p(h4(strong("2. Four Line Plots - "), "to depict cases, hospitalizations, ICU stays and deaths (time period spanning from user-defined model start date to 90 days later or March 31, 2021, 
                                                   whichever occurs latest) for the baseline simulation and for the simulation based on the user-defined inputs. The black, vertical, dashed line indicates today or day 1 of the simulation. The length of the masking intervention, the physical distancing intervention and the overlap of these two interventions is visualized using blue, red and purple shading, respectively. See below: "))),
-                            tags$ul(img(src="plots2.png", align = "center", height = "60%", width = "60%"))),
+                            tags$ul(img(src="plot2.png", align = "center", height = "60%", width = "60%"))),
                      column(11, offset = 0.75,
                             tags$ul(
                             tags$p(h4(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
