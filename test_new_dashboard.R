@@ -285,13 +285,13 @@ body <- dashboardBody(
                         
                             br(),
                             br(),
-                            tags$p(h4(strong(tags$i("District-level data when “National” is the selected level of interest")))),
-                            tags$ul(img(src="result_national.png", align = "center", height = "80%", width = "80%")),
+                            tags$p(h4(strong("District-level data when “National” is the selected level of interest"))),
+                            tags$ul(img(src="result_national.png", align = "center", height = "90%", width = "90%")),
                             br(),
                             br(),
                             
-                            tags$p(h4(strong(tags$i("TA-level data when “District” is the selected level of interest")))),
-                            tags$ul(img(src="result_district.png", align = "center", height = "80%", width = "80%")),
+                            tags$p(h4(strong("TA-level data when “District” is the selected level of interest"))),
+                            tags$ul(img(src="result_district.png", align = "center", height = "90%", width = "90%")),
                             br(),
                             br(),
                             
