@@ -7,6 +7,8 @@ library(shinythemes)
 library(tidyverse)
 library(scales)
 library(shinyWidgets)
+library(htmlwidgets)
+library(jsonlite)
 
 ##--Loading dataframes for baseline simulations 
 masking <- read_csv("masking_with_date.csv")
