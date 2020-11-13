@@ -129,17 +129,30 @@ body <- dashboardBody(
                      ),
                      column(width = 3,
                             #--Time Horizon Projection
+                            shinyFeedback::useShinyFeedback(),
                             numericInput('projection', 'End of Model (days after today)',
                                          value = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90) , 
                                          min = 1, 
                                          max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90),
                             ),
+                            textOutput("stop_function"),
+                            
                             tags$p("The user may select up to 90 days. Model projections will cap at 90 days from today or March 31, 2021, whichever occurs latest."),
           
                             
+                            
                      ),
-                     
-                     column(width = 5, 
+                     column(width = 3, 
+                            ##--Level of interest 
+                            selectInput('level', 'Please select the level of interest',
+                                        choices = c("National", "District", "TA")),
+                            ##
+                            uiOutput("district_ui"),
+                            uiOutput("district_ui2"),
+                            uiOutput("ta_ui")
+                            ##
+                            ),
+                     column(width = 12,
                             actionButton("runreportButton", strong("Run Report"),
                                          icon = icon("redo"),
                                          style = "color: white;
@@ -148,22 +161,14 @@ body <- dashboardBody(
                                                  position: relative;
                                                  left: 3%;
                                                  height: 45px;
-                                                 width: 300px;
+                                                 width: 277px;
                                                  text-align:center;
                                                  text-indent: -2px;
                                                  border-radius: 6px;
                                                  border-width: 2px")
-                            ),
-                     column(width = 3,
-                            ##--Level of interest 
-                            selectInput('level', 'Level of Interest',
-                                        choices = c("National", "District", "TA")),
-                            ##
-                            uiOutput("district_ui"),
-                            uiOutput("district_ui2"),
-                            uiOutput("ta_ui")
-                            ##
                      ),
+                     ##--Fixed parameters
+                     fluidRow(column(width = 12,
                      h3(strong("Fixed Model Parameters")),
                      tags$hr(),
                      column(width = 3,
@@ -189,7 +194,8 @@ body <- dashboardBody(
                             tags$p(h5(em("Pediatrics (<20):", "9.0%"))),
                             tags$p(h5(em("Adults (20-49):", "20%"))),
                             tags$p(h5(em("Elderly (50+):", "59%")))
-                     )
+                     ))
+                     ),
                      )
             ),#--end of fluid row
             ##--Widgets UI------------
@@ -1142,7 +1148,7 @@ server <- function(input, output, session){
                       # width = 450,
                       # height = 200
                       )
-      fig <- fig %>% layout(xaxis = list(title = "Date"),
+      fig <- fig %>% layout(xaxis = list(title = ""),
                             yaxis = list(title = ''))
       fig <- fig %>% add_trace(y = ~ ICU_sim, name = 'Intervention', line = list(color = 'pink'))
       fig <- fig %>% layout(
@@ -2534,6 +2540,25 @@ server <- function(input, output, session){
   
   ##--Observe Functions---------------------------------
   
+  ##--Observe for inputs--------------------------------
+  # observeEvent(input$projection,
+  #              shinyFeedback::feedbackWarning(
+  #                "projection",
+  #               input$projection > min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90),
+  #                "Please select a smaller number!"
+  #              )
+  #              )
+  stop_function <- reactive({
+    result <- input$projection <= min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90)
+    shinyFeedback::feedbackWarning(
+      "projection", !result, 
+      paste0("Please select a number ", "≤", " ", min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
+      )
+      req(result)
+      input$projection
+  })
+  
+  output$stop_function <- renderText(paste0("Selected number: ", stop_function()))
   
   ##--District Level Observe-------------
   districtObs <- observe({
