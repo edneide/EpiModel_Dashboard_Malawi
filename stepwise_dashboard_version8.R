@@ -56,14 +56,16 @@ body <- dashboardBody(
                      h1(strong("Epidemiological Model for COVID-19 - Malawi"))
               )
             ),
-            ##--Plots UI----------------
+            ##--3.1 Plots UI----------------
             fluidRow(
+              br(),
+              br(),
               column(width = 7, 
                      #"Plots"
                      uiOutput("national_title"),
                      uiOutput("district_title"),
                      uiOutput("ta_title"),
-                     
+                     br(),
                      column(width = 6,
                             uiOutput("national_ui"),
                             uiOutput("district_ui_plot1"),
@@ -92,7 +94,7 @@ body <- dashboardBody(
               ),
               column(width=5,
                      #"Police levers"
-                     #--Policy Levers
+                     #--3.2 Policy Levers-------
                      h3(strong("Policy Levers")),
                      tags$hr(),
                      column(width = 3.0, h5(strong("% Masking")),
@@ -105,10 +107,10 @@ body <- dashboardBody(
                                          max = 100),
                             # Length of Intervention # Days
                             numericInput('time_intervention_mask',
-                                         label = "Length of Intervention\n(# Days)",
+                                         label = "Length of masking intervention\n(# Days)",
                                          value = 7,
                                          min = 7,
-                                         max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
+                                         max = 90)
                      ),
                      column(width = 3.0, h5(strong("% Physical Distancing")),
                             tags$h5(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
@@ -118,10 +120,10 @@ body <- dashboardBody(
                                          min = 8,
                                          max = 100),
                             numericInput('time_intervention_dist',
-                                         label = "Length of Intervention\n(# Days)",
+                                         label = "Length of distancing intervention\n(# Days)",
                                          value = 7,
                                          min = 7,
-                                         max = min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
+                                         max = 90)
                      ),
                      column(width = 3,
                             #--Time Horizon Projection
@@ -133,7 +135,7 @@ body <- dashboardBody(
                             ),
                             textOutput("stop_function"),
                             
-                            tags$p("The user may select up to 90 days. Model projections will cap at 90 days from today or March 31, 2021, whichever occurs latest."),
+                            #tags$p("The user may select up to 90 days."),
                             
                             
                             
@@ -201,7 +203,7 @@ body <- dashboardBody(
                         value = 15, 
                         step = 1
             ),
-            ##--Widgets UI------------
+            ##--3.3 Widgets UI------------
             uiOutput("widgets_national"),
             uiOutput("widgets_district"),
             uiOutput("widgets_tas"),
@@ -328,19 +330,20 @@ body <- dashboardBody(
 )#--end of dashboardBody
 
 
-##UI------------------
+##4. UI------------------
 
 ui <- dashboardPage(skin = "purple", header = header, sidebar = sidebar, body = body)
 
-## 4. Server-----------------------------------------
+##-------------##
+## 5. SERVER----
+##-------------##
 
-##----------##
-##--SERVER--##
-##----------##
+
 server <- function(input, output, session){
   
-  ##---------------------------------------------------##
-  #---Creating the inputs .csv's based on user's selection 
+  ##---------------------------------------------------------##
+  #---5.1 Creating the inputs .csv's based on user's selection----- 
+  ##---------------------------------------------------------##
   restrictionsInput <- observe({
     if(input$runreportButton == 0) return()
     
@@ -365,11 +368,11 @@ server <- function(input, output, session){
   })
   
   ##----------------------##
-  ##--Reactive functions--##
+  ##--Reactive functions----
   ##----------------------##
   district_choices <- reactiveVal(districts_names$districts)
   
-  ##--Simulation
+  ##--Simulation----------------------
   simulation_function <- reactive({
     
     if(input$runreportButton == 0) return()
@@ -980,13 +983,14 @@ server <- function(input, output, session){
   })
   
   
+  
   ##--Plots National--------------
   
-  #--Title
+  #--Title National----
   output$plot_national_title <- renderText({
     "Graphs at National Level"
   })
-  #--Cases
+  #--Cases----
   output$fig <- renderPlotly({
     
     if(input$runreportButton == 0){
@@ -1018,13 +1022,18 @@ server <- function(input, output, session){
       
       return(fig)
     }else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot) &
                  date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -1061,7 +1070,7 @@ server <- function(input, output, session){
       return(fig)
     } 
   })
-  ##--Hospitalizations
+  ##--Hospitalizations----
   output$fig_country2 <- renderPlotly({
     
     if(input$runreportButton == 0){
@@ -1097,13 +1106,18 @@ server <- function(input, output, session){
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
     }else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
                  date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Hospitalizations_sq,
@@ -1140,7 +1154,8 @@ server <- function(input, output, session){
       return(fig)
     } 
   })
-  ##--Critical Care
+  
+  ##--Critical Care----
   output$fig_country3 <- renderPlotly({
     
     if(input$runreportButton == 0){
@@ -1170,13 +1185,18 @@ server <- function(input, output, session){
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
     }else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
                  date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
       
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
@@ -1244,13 +1264,18 @@ server <- function(input, output, session){
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
     } else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
                  date <= today() + days(input$projection))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
       
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
@@ -1298,190 +1323,218 @@ server <- function(input, output, session){
   ##--Cases
   output$fig_district <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], 
-                             district_sim()[[1]][,-c(1,2)]) %>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Cases_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'rgb(0, 102, 0)')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    
-    fig <- fig %>% layout(
-      title = "<b>Cases (in thousands)</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){
+      return()
+    }else{ 
+      
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      #data_final_plot <- district_projection_status_quo()[[1]]
+      data_final_plot <- cbind(district_projection_status_quo()[[1]], 
+                               district_sim()[[1]][,-c(1,2)]) %>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Cases_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'rgb(0, 102, 0)')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      
+      fig <- fig %>% layout(
+        title = "<b>Cases (in thousands)</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)
+    }
   })
+  
   ##--Hospitalizations
   output$fig_district2 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot)&
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Hospitalizations_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'orange')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
-    fig <- fig %>% layout(
-      title = "<b>Hospitalizations</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Hospitalizations_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'orange')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
+      fig <- fig %>% layout(
+        title = "<b>Hospitalizations</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
-  ##--Critical care
+  ##--Critical care----
   output$fig_district3 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot)&
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ ICU_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'red')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (Intervention)', line = list(color = 'pink'))
-    fig <- fig %>% layout(
-      title = "<b>ICU</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(input$begin_plot)&
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ ICU_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'red')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ ICU, name = 'ICU (Intervention)', line = list(color = 'pink'))
+      fig <- fig %>% layout(
+        title = "<b>ICU</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
-  ##--Deaths
+  ##--Deaths----
   output$fig_district4 <- renderPlotly({
     
-    if(input$runreportButton == 0) return()
-    #data_final_plot <- district_projection_status_quo()[[1]]
-    data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Death_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'black')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
-    fig <- fig %>% layout(
-      title = "<b>Deaths</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <-  fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      #data_final_plot <- district_projection_status_quo()[[1]]
+      data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Death_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'black')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
+      fig <- fig %>% layout(
+        title = "<b>Deaths</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <-  fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
   
   
@@ -1494,200 +1547,226 @@ server <- function(input, output, session){
   ##--Cases
   output$fig_ta <- renderPlotly({
     req(input$district2, input$ta)
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    ##--Changing title
-    title <- vector(mode = "character", length = 1)
-    if(data_final_plot$Cases_sq/100 > 99){
-      title[1] <- "Cases (in thousands)"
-    }else{
-      title[1] <- "Cases"
-    }
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Cases_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'rgb(0, 102, 0')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
-    
-    fig <- fig %>% layout(
-      #title = "<b>Cases</b>"
-      title = paste0("<b>",title[1],"<b>")
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      ##--Changing title
+      title <- vector(mode = "character", length = 1)
+      if(data_final_plot$Cases_sq/100 > 99){
+        title[1] <- "Cases (in thousands)"
+      }else{
+        title[1] <- "Cases"
+      }
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Cases_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'rgb(0, 102, 0')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
+      
+      fig <- fig %>% layout(
+        #title = "<b>Cases</b>"
+        title = paste0("<b>",title[1],"<b>")
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
   ##--Hospitalizations
   output$fig_ta2 <- renderPlotly({
     req(input$district2, input$ta)
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Hospitalizations_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'orange')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
-    
-    fig <- fig %>% layout(
-      title = "<b>Hospitalizations</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig) 
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Hospitalizations_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'orange')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Hospitalizations, name = 'Intervention', line = list(color = 'rgb(255, 223, 153)'))
+      
+      fig <- fig %>% layout(
+        title = "<b>Hospitalizations</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)} 
   })
   ##--ICU
   output$fig_ta3 <- renderPlotly({
     req(input$district2, input$ta)
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ ICU_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'red')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ ICU, name = 'Intervention', line = list(color = 'pink'))
-    fig <- fig %>% layout(
-      title = "<b>ICU</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ ICU_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'red')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ ICU, name = 'Intervention', line = list(color = 'pink'))
+      fig <- fig %>% layout(
+        title = "<b>ICU</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
+  
   ##--Death
   output$fig_ta4 <- renderPlotly({
     ##--Require certain inputs
     req(input$district2, input$ta)
-    if(input$runreportButton == 0) return()
-    data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
-      filter(date >= today() - days(input$begin_plot) &
-               date <= today() + days(input$projection))
-    x_start <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
-    x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
-    x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_dist))]
-    
-    
-    fig <-  plot_ly(data_final_plot,
-                    x = ~ date,
-                    y = ~ Death_sq,
-                    type = 'scatter',
-                    mode = 'lines',
-                    name = 'Status Quo',
-                    line = list(color = 'black')
-                    # width = 450,
-                    # height = 200
-    )
-    fig <- fig %>% layout(xaxis = list(title = ""),
-                          yaxis = list(title = ''))
-    fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
-    fig <- fig %>% layout(
-      title = "<b>Deaths</b>"
-    )
-    fig <- fig %>% layout(paper_bgcolor='transparent')
-    fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-                              line = list(color = 'grey', dash = 'dash'), name = 'Today')
-    
-    fig <- layout(fig,
-                  shapes = list(
-                    list(type = "rect",
-                         fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
-                         x0 = x_start, x1 = x_stops, xref = "x",
-                         y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
-                         yref = "y"),
-                    list(type = "rect",
-                         fillcolor = "red", line = list(color = "red"), opacity = 0.1,
-                         x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                         y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
-      config(displayModeBar = F)
-    fig <- fig %>% layout(legend = list(orientation = 'h'))
-    return(fig)
+    if(input$runreportButton == 0){return()}else{
+      ##---Make update depending on Run Report Button 
+      input$runreportButton
+      masking_time <- isolate(input$time_intervention_mask)
+      distancing_time <- isolate(input$time_intervention_dist)
+      ##
+      
+      
+      data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
+        filter(date >= today() - days(input$begin_plot) &
+                 date <= today() + days(input$projection))
+      x_start <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
+      x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
+      x_stops_distancing <- data_final_plot$date[which(data_final_plot$date == today() + days(distancing_time))]
+      
+      
+      fig <-  plot_ly(data_final_plot,
+                      x = ~ date,
+                      y = ~ Death_sq,
+                      type = 'scatter',
+                      mode = 'lines',
+                      name = 'Status Quo',
+                      line = list(color = 'black')
+                      # width = 450,
+                      # height = 200
+      )
+      fig <- fig %>% layout(xaxis = list(title = ""),
+                            yaxis = list(title = ''))
+      fig <- fig %>% add_trace(y = ~ Death, name = 'Intervention', line = list(color = 'grey'))
+      fig <- fig %>% layout(
+        title = "<b>Deaths</b>"
+      )
+      fig <- fig %>% layout(paper_bgcolor='transparent')
+      fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      
+      fig <- layout(fig,
+                    shapes = list(
+                      list(type = "rect",
+                           fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
+                           x0 = x_start, x1 = x_stops, xref = "x",
+                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
+                           yref = "y"),
+                      list(type = "rect",
+                           fillcolor = "red", line = list(color = "red"), opacity = 0.1,
+                           x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
+                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
+        config(displayModeBar = F)
+      fig <- fig %>% layout(legend = list(orientation = 'h'))
+      return(fig)}
   })
   
   
@@ -2499,7 +2578,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         paste0(formatC(reduc_hosp_ta(), format = "d", big.mark = ','), " (", 
-               reduc_cases_ta_perc(), "%)")
+               reduc_hosp_ta_perc(), "%)")
         , paste0('Reduction in Hospitalizations', " (", input$ta, ")")
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2521,7 +2600,7 @@ server <- function(input, output, session){
       valueBox(
         paste0(formatC(reduc_icu_ta(), 
                        format = "d", big.mark = ','), " (", 
-               reduc_cases_ta_perc(), "%)")
+               reduc_icu_ta_perc(), "%)")
         , paste0('Reduction in ICU', " (", input$ta, ")")
         , icon = icon("hospital")
         , color = "red"
@@ -2540,9 +2619,9 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_cases_ta(), 
+        paste0(formatC(reduc_death_ta(), 
                        format = "d", big.mark = ','), " (", 
-               reduc_cases_ta_perc(), "%)")
+               reduc_death_ta_perc(), "%)")
         , paste0('Reduction in Deaths', " (", input$ta, ")")
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2578,7 +2657,8 @@ server <- function(input, output, session){
     input$projection
   })
   
-  output$stop_function <- renderText(paste0("Selected number: ", stop_function()))
+  output$stop_function <- renderText(paste0("The user may select up to 90 days. Selected number: ", stop_function()))
+  
   
   ##--District Level Observe-------------
   districtObs <- observe({
