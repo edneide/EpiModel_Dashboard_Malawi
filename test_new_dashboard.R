@@ -659,8 +659,8 @@ server <- function(input, output, session){
     ages = c(AGE_CHILD, AGE_ADULT, AGE_ELDER)
     age_names = c('Pediatric', 'Adult', 'Elderly')
     
-    df_distancing <- read_csv('inputs/reductionScenarios/current_without_date.csv')
-    df_masking <- read_csv('inputs/masking/masking_compliance_without_date.csv')
+    df_distancing <- read_csv('inputs/reductionScenarios/current.csv')
+    df_masking <- read_csv('inputs/masking/masking_compliance.csv')
     df_locations <- read_csv('inputs/MW COVID Inputs.csv')
     df_params <- read_csv('inputs/params_inits_template.csv')
     df_seed <- read_csv('inputs/simulation-seeddates-ta-20200910.csv')
@@ -730,7 +730,7 @@ server <- function(input, output, session){
       d[[age]] <- matrix(dfs_ages[[age]]$empty_state)
     }
     
-    n_days = 365
+    n_days = 730
     
     for (day in 2:n_days) {
       yday <- day - 1
@@ -800,18 +800,18 @@ server <- function(input, output, session){
     ##--Country
     df_country_spread <- spread(df_country, key = State, value = People) 
     df_country_spread$date <- seq(from = as.Date("2020-04-01"),
-                                  by = "day", length.out = 365)
+                                  by = "day", length.out = 730)
     
     ##--District
     df_district_spread <- spread(df_district, key = State, value = People) 
     districts <- df_district_spread$Lvl3 %>% unique()
     df_district_spread$date <- rep(seq(from = as.Date("2020-04-01"),
-                                       by = "day", length.out = 365), length(districts))
+                                       by = "day", length.out = 730), length(districts))
     
     ##--TA
     df_ta2 <- df_ta 
     df_ta2$date <- rep(seq(from = as.Date("2020-04-01"), 
-                           by = "day", length.out = 365), 10152)  
+                           by = "day", length.out = 730), dim(df_ta)[1]/730)  
     
     ##--Organizing the outputs in a list
     list_output_sim <- list(country = df_country_spread, district = df_district_spread, ta = df_ta2)
@@ -829,7 +829,7 @@ server <- function(input, output, session){
     Severe_cases <- round(Death + Hospitalized_cum + ICU_cum)
     
     df_country_dash <- tibble(date = df_country_spread$date,
-                              time = 1:365,
+                              time = 1:730,
                               Cases_sq = Cases_cum,
                               Hospitalizations_sq = round(Hospitalized_cum),
                               ICU_sq = round(ICU_cum), 
@@ -884,7 +884,7 @@ server <- function(input, output, session){
     Death_dist <- district_df$Dead %>% round()
     Severe_dist <- round(Hospitalized_cum_dist + ICU_cum_dist + Death_dist)
     ##------------------------------------------------------------##
-    district_df2 <- tibble(time = seq(1:365), 
+    district_df2 <- tibble(time = seq(1:730), 
                            date = district_df$date,
                            Cases_sq = Cases_cum_dist, 
                            Hospitalizations_sq = round(Hospitalized_cum_dist),
@@ -917,7 +917,7 @@ server <- function(input, output, session){
     ICU_cum_dist <- cumsum(district_df$Critical)/crit_time
     Death_dist <- district_df$Dead %>% round()
     ##------------------------------------------------------------##
-    district_df2 <- tibble(time = seq(1:365), 
+    district_df2 <- tibble(time = seq(1:730), 
                            date = district_df$date,
                            Cases_sq = Cases_cum_dist, 
                            Hospitalizations_sq = round(Hospitalized_cum_dist),
@@ -955,7 +955,7 @@ server <- function(input, output, session){
     Severe_ta = round(Critical_cum_ta + Hosp_cum_ta + Dead_ta)
     
     simulation_ta_sq <- tibble(date = ta1_spread$date,
-                               time = seq(1:365),
+                               time = seq(1:730),
                                Cases_sq = Cases_cum_ta,
                                Hospitalizations_sq = round(Hosp_cum_ta),
                                ICU_sq = round(Critical_cum_ta),
@@ -994,7 +994,7 @@ server <- function(input, output, session){
     Death_dist <- district_df$Dead %>% round()
     Severe_cases <- ICU_cum_dist + Hospitalized_cum_dist + Death_dist
     ##------------------------------------------------------------##
-    district_df2 <- tibble(time = seq(1:365), 
+    district_df2 <- tibble(time = seq(1:730), 
                            date = district_df$date,
                            Cases = Cases_cum_dist, 
                            Hospitalizations = round(Hospitalized_cum_dist),
@@ -1830,7 +1830,7 @@ server <- function(input, output, session){
       Death_dist <- df_district2$Dead %>% round()
       Severe_dist <- round(Hospitalized_cum_dist + ICU_cum_dist + Death_dist)
       
-      df_district <- tibble(time = seq(1:365), 
+      df_district <- tibble(time = seq(1:730), 
                             date = df_district2$date,
                             District = districts[i],
                             Cases = Cases_cum_dist, 
@@ -1884,7 +1884,7 @@ server <- function(input, output, session){
       Death_dist <- df_district2$Dead %>% round()
       Severe_dist <- round(Hospitalized_cum_dist + ICU_cum_dist + Death_dist)
       
-      df_district <- tibble(time = seq(1:365), 
+      df_district <- tibble(time = seq(1:730), 
                             date = df_district2$date,
                             District = districts[i],
                             Cases = Cases_cum_dist, 
