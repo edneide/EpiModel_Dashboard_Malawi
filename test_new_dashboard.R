@@ -488,7 +488,7 @@ server <- function(input, output, session){
       d[[age]] <- matrix(dfs_ages[[age]]$empty_state)
     }
     
-    n_days = 365
+    n_days = 730
     
     for (day in 2:n_days) {
       yday <- day - 1
@@ -558,18 +558,18 @@ server <- function(input, output, session){
     ##--Country
     df_country_spread <- spread(df_country, key = State, value = People)
     df_country_spread$date <- seq(from = as.Date("2020-04-01"),
-                                  by = "day", length.out = 365)
+                                  by = "day", length.out = 730)
     
     ##--District
     df_district_spread <- spread(df_district, key = State, value = People)
     districts <- df_district_spread$Lvl3 %>% unique()
     df_district_spread$date <- rep(seq(from = as.Date("2020-04-01"),
-                                       by = "day", length.out = 365), length(districts))
+                                       by = "day", length.out = 730), length(districts))
     
     ##--TA
     df_ta2 <- df_ta
     df_ta2$date <- rep(seq(from = as.Date("2020-04-01"),
-                           by = "day", length.out = 365), 10152)
+                           by = "day", length.out = 730), 10152)
     
     ##--Organizing the outputs in a list
     list_output_sim <- list(country = df_country_spread, district = df_district_spread, ta = df_ta2)
@@ -586,7 +586,7 @@ server <- function(input, output, session){
     Severe_cases <- ICU_cum + Hospitalized_cum + Death
     
     df_country_dash <- tibble(date = df_country_spread$date,
-                              time = 1:365,
+                              time = 1:730,
                               Cases_sim = round(Cases_cum),
                               Hospitalizations_sim = round(Hospitalized_cum),
                               ICU_sim = round(ICU_cum), 
@@ -659,8 +659,8 @@ server <- function(input, output, session){
     ages = c(AGE_CHILD, AGE_ADULT, AGE_ELDER)
     age_names = c('Pediatric', 'Adult', 'Elderly')
     
-    df_distancing <- read_csv('inputs/reductionScenarios/current.csv')
-    df_masking <- read_csv('inputs/masking/masking_compliance.csv')
+    df_distancing <- read_csv('inputs/reductionScenarios/current_without_date.csv')
+    df_masking <- read_csv('inputs/masking/masking_compliance_without_date.csv')
     df_locations <- read_csv('inputs/MW COVID Inputs.csv')
     df_params <- read_csv('inputs/params_inits_template.csv')
     df_seed <- read_csv('inputs/simulation-seeddates-ta-20200910.csv')
