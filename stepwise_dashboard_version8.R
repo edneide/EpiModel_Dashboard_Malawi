@@ -1,19 +1,22 @@
 ##-------------------------------------##
-##--Updated version: 14 November, 2020--##
+##--Updated version: 17 November, 2020--##
 ##-------------------------------------##
 
 ##--Libraries----
 library(shinydashboard)
+library(shiny)
+library(shinyFeedback)
+library(shinythemes)
+library(shinyWidgets)
 library(readr)
 library(plotly)
 library(DT)
 library(lubridate)
-library(shinythemes)
 library(tidyverse)
 library(scales)
-library(shinyWidgets)
 library(htmlwidgets)
 library(jsonlite)
+
 
 ##--Loading dataframes for baseline simulations 
 masking <- read_csv("masking_with_date.csv")
@@ -65,12 +68,19 @@ body <- dashboardBody(
             fluidRow(
               br(),
               br(),
-              column(width = 7, 
-                     #"Plots"
+              column(width = 11, offset = 0.75,
                      uiOutput("national_title"),
                      uiOutput("district_title"),
                      uiOutput("ta_title"),
-                     br(),
+              ),
+              br(),
+              
+              column(width = 7, 
+                     ##--Widgets UI------------
+                     uiOutput("widgets_national"),
+                     uiOutput("widgets_district"),
+                     uiOutput("widgets_tas"),
+                     #"Plots"
                      column(width = 6,
                             uiOutput("national_ui"),
                             uiOutput("district_ui_plot1"),
@@ -100,9 +110,9 @@ body <- dashboardBody(
               column(width=5,
                      #"Police levers"
                      #--3.2 Policy Levers-------
-                     h3(strong("Policy Levers")),
+                     h2(strong("Policy Levers")),
                      tags$hr(),
-                     column(width = 3.0, h5(strong("% Masking")),
+                     column(width = 4.0, h5(strong("% Masking")),
                             
                             tags$h5("Current %: 15 %"),
                             numericInput('mask_perc', 
@@ -117,7 +127,7 @@ body <- dashboardBody(
                                          min = 7,
                                          max = 90)
                      ),
-                     column(width = 3.0, h5(strong("% Physical Distancing")),
+                     column(width = 4.0, h5(strong("% Physical Distancing")),
                             tags$h5(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
                             numericInput('distancing_perc',
                                          label = "New %",
@@ -130,7 +140,7 @@ body <- dashboardBody(
                                          min = 7,
                                          max = 90)
                      ),
-                     column(width = 3,
+                     column(width = 4,
                             #--Time Horizon Projection
                             shinyFeedback::useShinyFeedback(),
                             numericInput('projection', 'End of Model (days after today)',
@@ -145,17 +155,8 @@ body <- dashboardBody(
                             
                             
                      ),
-                     column(width = 3, 
-                            ##--Level of interest 
-                            selectInput('level', 'Please select the level of interest',
-                                        choices = c("National", "District", "TA")),
-                            ##
-                            uiOutput("district_ui"),
-                            uiOutput("district_ui2"),
-                            uiOutput("ta_ui")
-                            ##
-                     ),
-                     column(width = 12,
+                     
+                     column(width = 6, offset = 3,
                             actionButton("runreportButton", strong("Run Report"),
                                          icon = icon("redo"),
                                          style = "color: white;
@@ -170,9 +171,38 @@ body <- dashboardBody(
                                                  border-radius: 6px;
                                                  border-width: 2px")
                      ),
+                     ##--Display Options
+                     fluidRow(
+                       column(width = 12,
+                              h2(strong("Display Options")),
+                              br(),
+                              column(width = 4,
+                                     ##--Set x axis for plot
+                                     sliderInput('begin_plot', 'Start of Model (days before today)',
+                                                 min = 15, 
+                                                 max = as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")), 
+                                                 value = 15, 
+                                                 step = 1)    
+                              ),
+                              column(width = 4, 
+                                     ##--Level of interest 
+                                     selectInput('level', 'Please select the level of interest',
+                                                 choices = c("National", "District", "TA")),
+                                     
+                              ),
+                              column(width = 4,
+                                     ##
+                                     uiOutput("district_ui"),
+                                     uiOutput("district_ui2"),
+                                     uiOutput("ta_ui")
+                                     ##
+                              )
+                              
+                       )
+                     ),
                      ##--Fixed parameters
                      fluidRow(column(width = 12,
-                                     h3(strong("Fixed Model Parameters")),
+                                     h2(strong("Fixed Model Parameters")),
                                      tags$hr(),
                                      column(width = 3,
                                             tags$p(h5(strong("R0:"), "1.9")),
@@ -181,17 +211,18 @@ body <- dashboardBody(
                                             tags$p(h5(strong("ICU Time (Days):"), "8"))
                                      ),
                                      column(width = 3,
-                                            tags$p(h5(strong("ICU Risk Among Hospitalized:"))),
-                                            tags$p(h5(em("Pediatrics (<20):"), "5.0%")),
-                                            tags$p(h5(em("Adults (20-49):"), "14%")),
-                                            tags$p(h5(em("Elderly (50+):"), "28%"))
-                                     ),
-                                     column(width = 3,
                                             tags$p(h5(strong("Hospitalized Rate of Infected:"))),
                                             tags$p(h5(em("Pediatrics (<20):", "0.0090%"))),
                                             tags$p(h5(em("Adults (20-49):", "1.2%"))),
                                             tags$p(h5(em("Elderly (50+):", "5.5%")))
                                      ),
+                                     column(width = 3,
+                                            tags$p(h5(strong("ICU Risk Among Hospitalized:"))),
+                                            tags$p(h5(em("Pediatrics (<20):"), "5.0%")),
+                                            tags$p(h5(em("Adults (20-49):"), "14%")),
+                                            tags$p(h5(em("Elderly (50+):"), "28%"))
+                                     ),
+                                     
                                      column(width = 3,
                                             tags$p(h5(strong("Fatality Rate of ICU:"))),
                                             tags$p(h5(em("Pediatrics (<20):", "9.0%"))),
@@ -201,17 +232,7 @@ body <- dashboardBody(
                      ),
               )
             ),#--end of fluid row
-            ##--Set x axis for plot
-            sliderInput('begin_plot', 'Start of Model (days before today)',
-                        min = 15, 
-                        max = as.numeric(difftime(today(), as.Date("2020-04-01"), units = "days")), 
-                        value = 15, 
-                        step = 1
-            ),
-            ##--3.3 Widgets UI------------
-            uiOutput("widgets_national"),
-            uiOutput("widgets_district"),
-            uiOutput("widgets_tas"),
+            
             fluidRow(
               column(width = 11, offset = 0.75,
                      ##
@@ -376,6 +397,13 @@ server <- function(input, output, session){
   ##--Reactive functions----
   ##----------------------##
   district_choices <- reactiveVal(districts_names$districts)
+  
+  ##--End of Model 
+  end_of_model <- eventReactive(
+    input$runreportButton,
+    {input$projection}
+  )
+  
   
   ##--Simulation----------------------
   simulation_function <- reactive({
@@ -551,23 +579,23 @@ server <- function(input, output, session){
   country_projection_sim <- reactive({
     df_country_spread <- simulation_function()[[1]] %>%
       dplyr::mutate(Cases = `New Infections`)
-    Cases_cum <- cumsum(df_country_spread$Cases) %>% round()
+    Cases_cum <- cumsum(df_country_spread$Cases) 
     Hospitalized_cum <- cumsum(df_country_spread$Hospitalized)/hosp_time 
     ICU_cum <- cumsum(df_country_spread$Critical)/crit_time 
-    Death <- df_country_spread$Dead %>% round()
+    Death <- df_country_spread$Dead 
     Severe_cases <- ICU_cum + Hospitalized_cum + Death
     
     df_country_dash <- tibble(date = df_country_spread$date,
                               time = 1:365,
-                              Cases_sim = Cases_cum,
+                              Cases_sim = round(Cases_cum),
                               Hospitalizations_sim = round(Hospitalized_cum),
                               ICU_sim = round(ICU_cum), 
-                              Death_sim = Death,
-                              Severe_sim = Severe_cases)
+                              Death_sim = round(Death),
+                              Severe_sim = round(Severe_cases))
     
     
     df_country_dash_projection <- df_country_dash %>%
-      dplyr::filter(date == lubridate::today() + lubridate::days(input$projection))
+      dplyr::filter(date == lubridate::today() + lubridate::days(end_of_model()))
     df_country_dash_projection2 <- df_country_dash_projection %>%
       dplyr::select(date, Cases_sim, Hospitalizations_sim, ICU_sim, Death_sim)
     names(df_country_dash_projection2) <- c("date", "Cases (simulation projection)",
@@ -606,7 +634,7 @@ server <- function(input, output, session){
     ##-------------------------##
     ##--Projection--##
     projection_ta <- simulation_ta %>% 
-      filter(date == lubridate::today() + lubridate::days(input$projection))
+      filter(date == lubridate::today() + lubridate::days(end_of_model()))
     names(projection_ta) <- c("date", "Cases (simulation projection)",
                               "Hosp. (simulation projection)",
                               "ICU (simulation projection)",
@@ -809,7 +837,7 @@ server <- function(input, output, session){
                               Severe_sq = Severe_cases)
     
     df_country_dash_projection <- df_country_dash %>%
-      dplyr::filter(date == lubridate::today() + lubridate::days(input$projection))
+      dplyr::filter(date == lubridate::today() + lubridate::days(end_of_model()))
     df_country_dash_projection2 <- df_country_dash_projection %>%
       dplyr::select(Cases_sq, Hospitalizations_sq, ICU_sq, Death_sq)
     names(df_country_dash_projection2) <- c("Cases (status quo)",
@@ -868,7 +896,7 @@ server <- function(input, output, session){
     ##------------------------------------------------------------##
     ##--Projection--##
     district_projection_sim <- district_df2 %>% 
-      dplyr::filter(date == lubridate::today() + lubridate::days(input$projection)) %>% 
+      dplyr::filter(date == lubridate::today() + lubridate::days(end_of_model())) %>% 
       dplyr::select(Cases_sq, Hospitalizations_sq, ICU_sq, Death_sq)
     names(district_projection_sim) <- c("Cases (status quo)",
                                         "Hosp. (status quo)",
@@ -935,7 +963,7 @@ server <- function(input, output, session){
                                Severe_sq = Severe_ta)
     ##-------------------------##
     projection_ta_sq <- simulation_ta_sq[,-2] %>% 
-      filter(date == lubridate::today() + lubridate::days(input$projection)) %>% 
+      filter(date == lubridate::today() + lubridate::days(end_of_model())) %>% 
       select(date, Cases_sq:Death_sq)
     names(projection_ta_sq) <- c("date", "Cases (status quo projection)",
                                  "Hosp. (status quo projection)",
@@ -976,7 +1004,7 @@ server <- function(input, output, session){
     ##------------------------------------------------------------##
     ##--Projection--##
     district_projection_sim <- district_df2 %>% 
-      dplyr::filter(date == lubridate::today() + lubridate::days(input$projection)) %>% 
+      dplyr::filter(date == lubridate::today() + lubridate::days(end_of_model())) %>% 
       dplyr::select(Cases, Hospitalizations, ICU, Death)
     names(district_projection_sim) <- c("Cases (simulation projection)",
                                         "Hosp. (simulation projection)",
@@ -1001,7 +1029,7 @@ server <- function(input, output, session){
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash %>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(90))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Cases_sq,
@@ -1027,14 +1055,15 @@ server <- function(input, output, session){
       
       return(fig)
     }else{
-      ##---Make update depending on Run Report Button 
+      ##---Making update depending on "Run Report" Button 
       input$runreportButton
       masking_time <- isolate(input$time_intervention_mask)
       distancing_time <- isolate(input$time_intervention_dist)
       ##
-      data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
+      data_final_plot <- cbind(country_projection_status_quo()[[1]], 
+                               country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1081,7 +1110,7 @@ server <- function(input, output, session){
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(90))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(input$time_intervention_mask))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1118,7 +1147,7 @@ server <- function(input, output, session){
       ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1166,7 +1195,7 @@ server <- function(input, output, session){
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(90))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ ICU_sq,
@@ -1197,7 +1226,7 @@ server <- function(input, output, session){
       ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1245,7 +1274,7 @@ server <- function(input, output, session){
     if(input$runreportButton == 0){
       data_final_plot <- df_country_dash%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(90))
       fig <-  plot_ly(data_final_plot,
                       x = ~ date,
                       y = ~ Death_sq,
@@ -1276,7 +1305,7 @@ server <- function(input, output, session){
       ##
       data_final_plot <- cbind(country_projection_status_quo()[[1]], country_projection_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1342,7 +1371,7 @@ server <- function(input, output, session){
       data_final_plot <- cbind(district_projection_status_quo()[[1]], 
                                district_sim()[[1]][,-c(1,2)]) %>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1396,7 +1425,7 @@ server <- function(input, output, session){
       ##
       data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1448,7 +1477,7 @@ server <- function(input, output, session){
       
       data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot)&
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1501,7 +1530,7 @@ server <- function(input, output, session){
       #data_final_plot <- district_projection_status_quo()[[1]]
       data_final_plot <- cbind(district_projection_status_quo()[[1]], district_sim()[[1]][,-c(1,2)])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1561,7 +1590,7 @@ server <- function(input, output, session){
       
       data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       ##--Changing title
       title <- vector(mode = "character", length = 1)
       if(data_final_plot$Cases_sq/100 > 99){
@@ -1622,7 +1651,7 @@ server <- function(input, output, session){
       
       data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1675,7 +1704,7 @@ server <- function(input, output, session){
       
       data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1731,7 +1760,7 @@ server <- function(input, output, session){
       
       data_final_plot <- cbind(ta_simulation_status_quo()[[1]], ta_simulation()[[1]][,-1])%>% 
         filter(date >= today() - days(input$begin_plot) &
-                 date <= today() + days(input$projection))
+                 date <= today() + days(end_of_model()))
       x_start <- data_final_plot$date[which(data_final_plot$date == today())]
       x_stops <- data_final_plot$date[which(data_final_plot$date == today() + days(masking_time))]
       x_start_distancing <- data_final_plot$date[which(data_final_plot$date == today())]
@@ -1815,7 +1844,7 @@ server <- function(input, output, session){
     ##--Projection baseline
     table_all <- do.call(rbind, list_district_baseline)
     df_simulation_baseline <- table_all %>% 
-      filter(date == today() + days(input$projection)) %>% 
+      filter(date == today() + days(end_of_model())) %>% 
       select(Cases:Death)
     names(df_simulation_baseline) <- c("Cases (status quo projection)",
                                        "Hosp. (status quo projection)", 
@@ -1869,7 +1898,7 @@ server <- function(input, output, session){
     table_all <- do.call(rbind, list_district_simulation)
     ##
     df_simulation_projection <- table_all %>% 
-      filter(date == today() + days(input$projection)) %>% 
+      filter(date == today() + days(end_of_model())) %>% 
       select(Cases:Death)
     names(df_simulation_projection) <- c("Cases (simulation projection)",
                                          "Hosp. (simulation projection)", 
@@ -1919,12 +1948,12 @@ server <- function(input, output, session){
       #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 10,
+        pageLength = -1,
         autoWidth = TRUE,
         dom = 'Blfrtip',
         #dom = 'Bt',
         buttons = c('csv', 'excel'), # buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-        lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All")
+        lengthMenu = list(c(25, 50, -1), c(25, 50, "All")
         )
       )
     )
@@ -1976,7 +2005,7 @@ server <- function(input, output, session){
     ta_all <- do.call(rbind, list_ta)
     
     ta_all_final <- ta_all %>% 
-      filter(date == today() + days(input$projection)) %>% 
+      filter(date == today() + days(end_of_model())) %>% 
       select(TA:Death)
     
     names(ta_all_final) <- c("TA", "Cases (simulation projection)", "Hosp. (simulation projection)",
@@ -2020,7 +2049,7 @@ server <- function(input, output, session){
     ta_all <- do.call(rbind, list_ta)
     
     ta_all_final <- ta_all %>% 
-      filter(date == today() + days(input$projection)) %>% 
+      filter(date == today() + days(end_of_model())) %>% 
       select(TA:Death) 
     
     names(ta_all_final) <- c("TA", "Cases (status quo projection)", "Hosp. (status quo projection)",
@@ -2074,7 +2103,7 @@ server <- function(input, output, session){
       #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 10,
+        pageLength = -1,
         autoWidth = TRUE,
         dom = 'Blfrtip', 
         #dom = 'Bt',
@@ -2139,7 +2168,7 @@ server <- function(input, output, session){
     ##------------------------------------------------##
     #--projection status quo
     status_quo_ta_all_projection <- ta_all %>% 
-      filter(date == today() + days(input$projection))
+      filter(date == today() + days(end_of_model()))
     names(status_quo_ta_all_projection) <- c("date", "TA", "Cases (status quo projection)", 
                                              "Hosp. (status quo projection)",
                                              "ICU (status quo projection)", 
@@ -2191,7 +2220,7 @@ server <- function(input, output, session){
     ta_all <- do.call(rbind, list_ta)
     #--projection status quo
     simulation_ta_all_projection <- ta_all %>% 
-      filter(date == today() + days(input$projection))
+      filter(date == today() + days(end_of_model()))
     names(simulation_ta_all_projection) <- c("date", "TA", "Cases (simulation projection)", 
                                              "Hosp. (simulation projection)",
                                              "ICU (simulation projection)", 
@@ -2224,7 +2253,7 @@ server <- function(input, output, session){
       #filter = 'top',
       options = list(
         deferRender = TRUE,
-        pageLength = 10,
+        pageLength = -1,
         autoWidth = TRUE,
         dom = 'Blfrtip', 
         #dom = 'Bt',
@@ -2360,13 +2389,14 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_cases_national(), format = "d", big.mark = ','), " (", reduc_cases_national_perc(), "%)")
+        tags$p(paste0(formatC(reduc_cases_national(), format = "d", big.mark = ','), " (", reduc_cases_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in Cases', '(National)')
         , icon = icon("virus")
         , color = "green"
       )
     } 
   })
+  
   
   ##--Hospitalizations 
   output$hosp <- renderValueBox({
@@ -2380,7 +2410,7 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_hosp_national(), format = "d", big.mark = ','), " (", reduc_hosp_national_perc(), "%)")
+        tags$p(paste0(formatC(reduc_hosp_national(), format = "d", big.mark = ','), " (", reduc_hosp_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in Hospitalizations', '(National)')
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2400,8 +2430,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_icu_national(), 
-                       format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)")
+        tags$p(paste0(formatC(reduc_icu_national(), 
+                              format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
@@ -2420,8 +2450,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_death_national(), 
-                       format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)")
+        tags$p(paste0(formatC(reduc_death_national(), 
+                              format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in Deaths', '(National)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2458,8 +2488,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_cases_districts(), format = "d", big.mark = ','), " (", 
-               reduc_cases_districts_perc(), "%)")
+        tags$p(paste0(formatC(reduc_cases_districts(), format = "d", big.mark = ','), " (", 
+                      reduc_cases_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Cases', " (", input$district, ")")
         , icon = icon("virus")
         , color = "green"
@@ -2479,8 +2509,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_hosp_districts(), format = "d", big.mark = ','), " (", 
-               reduc_hosp_districts_perc(), "%)")
+        tags$p(paste0(formatC(reduc_hosp_districts(), format = "d", big.mark = ','), " (", 
+                      reduc_hosp_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Hospitalizations', " (", input$district, ")")
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2500,9 +2530,9 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_icu_districts(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_icu_districts_perc(), "%)")
+        tags$p(paste0(formatC(reduc_icu_districts(), 
+                              format = "d", big.mark = ','), " (", 
+                      reduc_icu_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in ICU', " (", input$district, ")")
         , icon = icon("hospital")
         , color = "red"
@@ -2521,9 +2551,9 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_death_districts(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_death_districts_perc(), "%)")
+        tags$p(paste0(formatC(reduc_death_districts(), 
+                              format = "d", big.mark = ','), " (", 
+                      reduc_death_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Deaths', " (", input$district, ")")
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2550,6 +2580,7 @@ server <- function(input, output, session){
   
   ##--Cases
   output$cases_tas <- renderValueBox({
+    req(input$district2, input$ta)
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
     if(input$runreportButton == 0){
       valueBox(
@@ -2561,8 +2592,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_cases_ta(), format = "d", big.mark = ','), " (", 
-               reduc_cases_ta_perc(), "%)")
+        tags$p(paste0(formatC(reduc_cases_ta(), format = "d", big.mark = ','), " (", 
+                      reduc_cases_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Cases', " (", input$ta, ")")
         , icon = icon("virus")
         , color = "green"
@@ -2572,6 +2603,7 @@ server <- function(input, output, session){
   
   ##--Hospitalizations 
   output$hosp_tas <- renderValueBox({
+    req(input$district2, input$ta)
     #req(input$mask_perc, input$time_intervention_mask, input$distancing_perc, input$time_interval_dist)
     if(input$runreportButton == 0){
       valueBox(
@@ -2582,8 +2614,8 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_hosp_ta(), format = "d", big.mark = ','), " (", 
-               reduc_hosp_ta_perc(), "%)")
+        tags$p(paste0(formatC(reduc_hosp_ta(), format = "d", big.mark = ','), " (", 
+                      reduc_hosp_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Hospitalizations', " (", input$ta, ")")
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2593,6 +2625,7 @@ server <- function(input, output, session){
   
   ##--ICU 
   output$icu_tas <- renderValueBox({
+    req(input$district2, input$ta)
     if(input$runreportButton == 0){
       valueBox(
         formatC(0, 
@@ -2603,9 +2636,9 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_icu_ta(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_icu_ta_perc(), "%)")
+        tags$p(paste0(formatC(reduc_icu_ta(), 
+                              format = "d", big.mark = ','), " (", 
+                      reduc_icu_ta_perc(), "%)"),style = "font-size: 80%;")
         , paste0('Reduction in ICU', " (", input$ta, ")")
         , icon = icon("hospital")
         , color = "red"
@@ -2614,6 +2647,7 @@ server <- function(input, output, session){
   })
   ##--Death 
   output$death_tas <- renderValueBox({
+    req(input$district2, input$ta)
     if(input$runreportButton == 0){
       valueBox(
         formatC(0, 
@@ -2624,9 +2658,9 @@ server <- function(input, output, session){
       )
     }else{
       valueBox(
-        paste0(formatC(reduc_death_ta(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_death_ta_perc(), "%)")
+        tags$p(paste0(formatC(reduc_death_ta(), 
+                              format = "d", big.mark = ','), " (", 
+                      reduc_death_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Deaths', " (", input$ta, ")")
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2653,10 +2687,10 @@ server <- function(input, output, session){
   #              )
   #              )
   stop_function <- reactive({
-    result <- input$projection <= min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90)
+    result <- input$projection <= 90
     shinyFeedback::feedbackWarning(
       "projection", !result, 
-      paste0("Please select a number ", "≤", " ", min(as.numeric(difftime(as.Date("2021-03-31"), today(), units = "days")),90))
+      paste0("Please select a number ", "≤", " ", 90)
     )
     req(result)
     input$projection
