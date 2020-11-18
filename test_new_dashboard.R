@@ -271,15 +271,30 @@ body <- dashboardBody(
                             tags$div(
                               tags$ul(
                                 tags$li(h4(strong("% Masking – "), "Percentage of population wearing a mask (Note that the model assumes mask efficacy at 50%); User may select values from 0 to 100, inclusively")),
-                                tags$li(h4(strong("% Physical Distancing –"), "Percentage of population physical distancing (i.e., reducing number of close contacts); User may select values from 0 to 100, inclusively")),
-                                tags$li(h4(strong("Length of Intervention (in days)  –"), "Number of days that each respective intervention will be carried out in the simulation; User may select values from 0 to 100, inclusively")),
-                                tags$li(h4(strong("Start of model (days before today) – "), "The number of days before today (i.e., Day 1 of simulation with user-defined policy levers) displayed on the x-axes of generated line plots")),
-                                tags$li(h4(strong("End of model (days after today) –"), "The number of days after today (i.e., Day 1 of simulation with user-defined policy levers) for which estimates in the generated outputs will reflect; User may select values from 0 to 90, inclusively")),
-                                tags$li(h4(strong("Level of Interest –"), "Option to select whether line plots will reflect values at the national-, district- or TA-level (Note that if either district or TA is selected, user must subsequently select a specific district or TA to generate results for)")),
+                                tags$li(h4(strong("% Physical Distancing –"), "Percentage of population physical distancing (i.e., reducing number of close contacts); User may select values from -100 to 100, inclusively (Note that negative values indicate that gatherings are increasing)")),
+                                tags$li(h4(strong("Length of Intervention (in days)  –"), "Number of days that each respective intervention will be carried out in the simulation; User may select values from 0 to the user-defined", em("End of Model"), "(see below)")),
+                                #tags$li(h4(strong("Start of model (days before today) – "), "The number of days before today (i.e., Day 1 of simulation with user-defined policy levers) displayed on the x-axes of generated line plots")),
+                                tags$li(h4(strong("End of model (days after today) –"), "The number of days after today (i.e., Day 1 of simulation) for which estimates in the generated outputs will reflect; User may select values from 0 to 90, inclusively")),
+                                #tags$li(h4(strong("Level of Interest –"), "Option to select whether line plots will reflect values at the national-, district- or TA-level (Note that if either district or TA is selected, user must subsequently select a specific district or TA to generate results for)")),
                               )
                             ),
                             tags$p(h4("Once the user sets all parameter values for manipulative policy levers, they may click",
                                       strong("Run Report"), "to update the model outputs based on their selections.")),
+                            ##-- Display Options
+                            h1("Display Options:"),
+                            tags$p(h4("The user may also set different parameters to influence the display settings for the generated outputs.")),
+                            tags$ul(
+                              tags$li(h4(strong("Level of Interest - "), "Option to select whether line plots will reflect values at the national-, 
+                                         district- or TA-level", "(", 
+                                         em("Note that if either district or TA is selected, 
+                                         an additional dropdown will appear requiring the user to subsequently select a specific district or TA 
+                                         to generate results for"),")"
+                                         )),
+                              tags$li(h4(strong("Start of Model - "), "Slider to select the number of days prior to today (i.e., Day 1 of simulation) 
+                                         visualized on the x-axis. The number of days is capped so that the user can look back as far as the onset 
+                                         of the pandemic in Malawi (i.e., April 1, 2020). See below:"))
+                              ),
+                            ##--Fixed Model parameters
                             h1("Fixed model parameters"),
                             
                             tags$p(h4("Certain parameters in the dashboard that are derived from scientific literature describing the virus, 
@@ -292,25 +307,43 @@ body <- dashboardBody(
                             h1("Output:"),
                             
                             tags$p(h4("After making their selections and re-running the model, the following outputs will be generated:")),
-                            tags$ul(tags$p(h4(strong("1. Widgets displaying reductions - "), "to display the numeric and percentage decreases in cases, hospitalizations, ICU stays and deaths from the baseline to the user-defined simulation. See below:"))),
+                            tags$ul(tags$p(h4(strong("1. 4 Widgets  (green, orange, red and black boxes) - "), 
+                                              "to display the numeric and percentage decreases in cases, 
+                                              hospitalizations, ICU stays and deaths from the baseline to
+                                              the user-defined simulation. See below:"))),
                             tags$ul(
                               img(src="reduction_widgets.png", align = "center", height = "80%", width = "80%")
                             ),
-                            tags$ul(tags$p(h4(strong("2. Four Line Plots - "), "to depict cases, hospitalizations, 
-                            ICU stays and deaths (time period spanning from user-defined model start date to 90 days later
-                                                  ) for the baseline simulation and for the simulation based on the user-defined inputs. The black, vertical, dashed line indicates today or day 1 of the simulation. The length of the masking intervention, the physical distancing intervention and the overlap of these two interventions is visualized using blue, red and purple shading, respectively. See below: "))),
+                            tags$ul(tags$p(h4(strong("2. 4 Line Plots - "), "to depict cases, hospitalizations, 
+                            ICU stays and deaths (across the user defined time period) for the baseline simulation and for 
+                                              the simulation based on the user-defined inputs. 
+                                              The black, vertical, dashed line indicates today or Day 1 of the simulation.
+                                              The length of the masking intervention, the physical distancing intervention and 
+                                              the overlap of these two interventions is visualized using blue, red and purple shading, 
+                                              respectively. 
+                                              See below: "))),
                             tags$ul(img(src="plot2.png", align = "center", height = "60%", width = "60%"))),
                      column(11, offset = 0.75,
                             tags$ul(
-                              tags$p(h4(strong("3. One Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
+                              tags$p(h4(strong("3. 1 Results Table - "), "which provides number of cases, hospitalizations, ICU stays and deaths for the following categories:"))
                             ),
                             tags$ul(
                               tags$p(h4(strong("a.	To Date –"), "Cumulative cases, hospitalizations, ICU stays and deaths")),
                               tags$p(h4(strong("b.	Status Quo –"), "Cumulative values up until the user-defined time horizon based on the baseline scenario policy levers (i.e., masking at 15% and physical distancing at 8%)")),
                               tags$p(h4(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"))
                             ), 
-                            
-                            tags$p(h4("* Note that when “National” is selected as the level of interest, this table displays district-level data. When “District” is selected as the level of interest and a particular district is specified, this table displays TA-level data for that district. When “TA” is selected as the level of interest, this table displays TA-level data for the district that the chosen TA falls within. See below:")),
+                            br(),
+                            tags$p(h4("* *Various functionalities are included that allow the user to select 
+                                      the number of entries shown on the initial interface of the table and to export
+                                      to CSV or Excel. Note that this table displays the sub-level of data immediately
+                                      following the user-defined level of interest, in order to offer a more detailed 
+                                      breakdown of the results and facilitate comparisons across districts and TAs. 
+                                      Further, that when “National” is selected as the level of interest, 
+                                      this table displays district-level data. When “District” is selected as 
+                                      the level of interest and a particular district is specified, this table 
+                                      displays TA-level data for that district. When “TA” is selected as the 
+                                      level of interest, this table displays TA-level data for the district that 
+                                      the chosen TA falls within. See below:")),
                             
                             br(),
                             br(),
@@ -335,16 +368,37 @@ body <- dashboardBody(
                             tags$p(h4("Our model is coded using freely available open source 
                                       R programming language (version 3.6.3) with the RStudio IDE (version 1.4.869)."),
                                    
-                                   h4("Our analytic code leverages the packages tidyverse, deSolve, and ggplot2. The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "and", strong("shinydashboard"), "libraries, other additional libraries 
+                                   h4("Our analytic code leverages the packages", 
+                                      strong("tidyverse"), ",",
+                                      strong("deSolve"), ",",
+                                      "and",
+                                      strong("ggplot2."), 
+                                   "The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "and", strong("shinydashboard"), "libraries, other additional libraries 
                                     were used to organize the model outputs and present the visualizations on the final app, 
-                                    such as readr, plotly, DT, lubridate, shinythemes and tidyverse.
-                                    For user instructions and explanations of the dashboard’s interface, please refer to the", 
-                                      strong("“User guide”"), "tab.")
-                            ),
+                                    such as")),
+                                   
+                                   tags$ul(
+                                     tags$li(h4("shinyFeedback")),
+                                     tags$li(h4("shinythemes")),
+                                     tags$li(h4("shinyWidgets")),
+                                     tags$li(h4("readr")),
+                                     tags$li(h4("plotly")),
+                                     tags$li(h4("DT")),
+                                     tags$li(h4("lubridate")),
+                                     tags$li(h4("tidyverse")),
+                                     tags$li(h4("scales")),
+                                     tags$li(h4("htmlwidgets")),
+                                     tags$li(h4("jsonlite")),
+                                   ),
+                            br(),
+                            tags$p(h4("For user instructions and explanations of the dashboard’s interface, please refer to the", 
+                                       strong("“User guide”"), "tab.")),
+                            br(),
+                            br(),
                             tags$p(h4(strong("The code for this epidemiological dashboard can be found in the following link:",
                                              tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub.")))
                             )
-                            
+
                             
             )##--end of column
             )##--end of fluid row
