@@ -124,7 +124,9 @@ body <- dashboardBody(
                                          min = 15,
                                          max = 100),
                             textOutput("warning_masking"),
-                            uiOutput("masking_intervention")
+                            shinyFeedback::useShinyFeedback(),
+                            uiOutput("masking_intervention"),
+                            textOutput("warning_mask_days")
                      ),
                      column(width = 4.0, h5(strong("% Physical Distancing")),
                             tags$h5(paste0("Current %: ", 100*current$reduc[which(current$date==lubridate::today())]),"%"),
@@ -135,7 +137,9 @@ body <- dashboardBody(
                                          min = 8,
                                          max = 100),
                             textOutput("warning_distancing"),
-                            uiOutput("distancing_intervention")
+                            shinyFeedback::useShinyFeedback(),
+                            uiOutput("distancing_intervention"),
+                            textOutput("warning_dist_days")
                      ),
                      column(width = 4,
                             #--Time Horizon Projection
@@ -251,6 +255,9 @@ body <- dashboardBody(
                      uiOutput("print_national_table_title"),
                      uiOutput("print_district_table_title"),
                      uiOutput("print_ta_table_title"),
+                     tags$p("Make sure to show",
+                            strong("all"),
+                            "entries (Note that selection will determine the number of entries in the export)"),
                      uiOutput("national_ui5"),
                      uiOutput("district_ui_table"),
                      uiOutput("ta_table")
@@ -448,26 +455,28 @@ server <- function(input, output, session){
   })
   
   ##----------------------##
-  ##--Reactive functions----
+  ##--5.2 Reactive functions----
   ##----------------------##
   district_choices <- reactiveVal(districts_names$districts)
   
- ##--End of Model---- 
+ ##--5.3 End of Model---- 
   end_of_model <- eventReactive(
     input$runreportButton,
     {input$projection}
     )
   
-  ##--UI for length of masking intervention----
+  ##--5. 4 UI for length of masking intervention----
   output$masking_intervention <- renderUI({
+    #shinyFeedback::useShinyFeedback()
     numericInput('time_intervention_mask',
                  label = "Length of masking intervention\n(# Days)",
                  value = 7,
                  min = 0,
                  max = input$projection)
+    #textOutput("warning_masking")
   })
   
-  ##--UI for length of distancing intervention----
+  ##--5.5 UI for length of distancing intervention----
   output$distancing_intervention <- renderUI({
     numericInput('time_intervention_dist',
                  label = "Length of distancing intervention\n(# Days)",
@@ -480,7 +489,7 @@ server <- function(input, output, session){
   
   
   
-  ##--Simulation----------------------
+  ##--5.6 Simulation----------------------
   simulation_function <- reactive({
     
     if(input$runreportButton == 0) return()
@@ -721,7 +730,7 @@ server <- function(input, output, session){
   })
   
   
-  ##--Simulation Baseline--------------------
+  ##--5.7 Simulation Baseline--------------------
   
   simulation_baseline <- reactive({
     
@@ -1092,13 +1101,14 @@ server <- function(input, output, session){
   
   
   
-  ##--Plots National--------------
+ 
+  ##--5.8 Plots National--------------
   
-  #--Title National----
+  #--Title National--
   output$plot_national_title <- renderText({
     "Graphs at National Level"
   })
-  #--Cases----
+  #--Cases--
   output$fig <- renderPlotly({
     
     if(input$runreportButton == 0){
@@ -1161,6 +1171,10 @@ server <- function(input, output, session){
       fig <- fig %>% layout(paper_bgcolor='transparent')
       #fig <- fig %>% layout(plot_bgcolor='transparent')
       fig <- fig %>% add_trace(y = ~ Cases_sim, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
+      fig <- fig %>% add_trace(x = today(),
+                               type = 'scatter', mode = 'lines',
+                               line = list(color = 'grey', dash = 'dash'),
+                               name = 'Today')
       fig <- layout(fig,
                     shapes = list(
                       list(type = "rect",
@@ -1174,34 +1188,25 @@ server <- function(input, output, session){
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
                            y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)), 
                            y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)), 
-                           yref = "y"),
-                      list(type = "line",
-                           x0 = today(), x1 = today(), xref = "x",
-                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)), 
-                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)),
-                           yref = "y",
-                           line = list(color = 'grey', dash = 'dash'),
-                           name = 'Today'
-                           )
+                           yref = "y")
+                      # list(type = "line",
+                      #      x0 = today(), x1 = today(), xref = "x",
+                      #      y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)), 
+                      #      y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)),
+                      #      yref = "y",
+                      #      line = list(color = 'grey', dash = 'dash'),
+                      #      text = 'Today'
+                      #      )
                       )) %>% 
         config(displayModeBar = F)
-      # fig <- fig %>% add_trace(x = today(), 
-      #                          y = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)), 
-      #                          yend = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)),
-      #                          type = 'scatter', mode = 'lines',
-      #                          line = list(color = 'grey', dash = 'dash'),
-      #                          name = 'Today')
       
-      # fig <- fig %>% layout(shapes = list(type = "line", x = today(), 
-      #                                     y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)),
-      #                                     y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)),
-      #                                     line = list(color = 'grey', dash = 'dash'),
-      #                                     name = 'Today'))
+      
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
     } 
   })
-  ##--Hospitalizations----
+  
+  ##--Hospitalizations--
   output$fig_country2 <- renderPlotly({
     
     if(input$runreportButton == 0){
@@ -1269,8 +1274,8 @@ server <- function(input, output, session){
       )
       fig <- fig %>% layout(paper_bgcolor='transparent')
       #fig <- fig %>% layout(plot_bgcolor='transparent')
-      # fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-      #                          line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
       fig <- layout(fig,
                     shapes = list(
                       list(type = "rect",
@@ -1284,15 +1289,15 @@ server <- function(input, output, session){
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
                            y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations_sim)), 
                            y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations_sim)), 
-                           yref = "y"),
-                      list(type = "line",
-                           x0 = today(), x1 = today(), xref = "x",
-                           y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations_sim)), 
-                           y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations_sim)),
-                           yref = "y",
-                           line = list(color = 'grey', dash = 'dash'),
-                           name = 'Today'
-                      )
+                           yref = "y")
+                      # list(type = "line",
+                      #      x0 = today(), x1 = today(), xref = "x",
+                      #      y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations_sim)), 
+                      #      y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations_sim)),
+                      #      yref = "y",
+                      #      line = list(color = 'grey', dash = 'dash'),
+                      #      name = 'Today'
+                      # )
                       ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
@@ -1360,8 +1365,8 @@ server <- function(input, output, session){
         title = "<b>ICU (in thousands)</b>"
       )
       fig <- fig %>% layout(paper_bgcolor='transparent')
-      # fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-      #                          line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
       fig <- layout(fig,
                     shapes = list(
                       list(type = "rect",
@@ -1375,15 +1380,15 @@ server <- function(input, output, session){
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
                            y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU_sim)), 
                            y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU_sim)),
-                           yref = "y"),
-                      list(type = "line",
-                           x0 = today(), x1 = today(), xref = "x",
-                           y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU_sim)), 
-                           y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU_sim)),
-                           yref = "y",
-                           line = list(color = 'grey', dash = 'dash'),
-                           name = 'Today'
-                      )
+                           yref = "y")
+                      # list(type = "line",
+                      #      x0 = today(), x1 = today(), xref = "x",
+                      #      y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU_sim)), 
+                      #      y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU_sim)),
+                      #      yref = "y",
+                      #      line = list(color = 'grey', dash = 'dash'),
+                      #      name = 'Today'
+                      # )
                       ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
@@ -1451,8 +1456,8 @@ server <- function(input, output, session){
         title = "<b>Deaths</b>"
       )
       fig <- fig %>% layout(paper_bgcolor='transparent')
-      # fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-      #                          line = list(color = 'grey', dash = 'dash'), name = 'Today')
+      fig <- fig %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
+                               line = list(color = 'grey', dash = 'dash'), name = 'Today')
       fig <- layout(fig,
                     shapes = list(
                       list(type = "rect",
@@ -1466,15 +1471,15 @@ server <- function(input, output, session){
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
                            y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death_sim)), 
                            y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death_sim)),
-                           yref = "y"),
-                      list(type = "line",
-                           x0 = today(), x1 = today(), xref = "x",
-                           y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death_sim)), 
-                           y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death_sim)),
-                           yref = "y",
-                           line = list(color = 'grey', dash = 'dash'),
-                           name = 'Today'
-                      )
+                           yref = "y")
+                      # list(type = "line",
+                      #      x0 = today(), x1 = today(), xref = "x",
+                      #      y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death_sim)), 
+                      #      y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death_sim)),
+                      #      yref = "y",
+                      #      line = list(color = 'grey', dash = 'dash'),
+                      #      name = 'Today'
+                      # )
                       ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
@@ -1483,7 +1488,7 @@ server <- function(input, output, session){
   })
   
   
-  ##--Plots District---------------------
+  ##--5.9 Plots District---------------------
   
   #--Title
   output$plot_district_title <- renderText({
@@ -1530,31 +1535,33 @@ server <- function(input, output, session){
       )
       fig <- fig %>% layout(paper_bgcolor='transparent')
       fig <- fig %>% add_trace(y = ~ Cases, name = 'Intervention', line = list(color = 'rgb(102, 255, 153)'))
-      # fig <- fig  %>% add_trace(x =today(), type = 'scatter', mode = 'lines',
-      #                           line = list(color = 'grey', dash = 'dash'), name = 'Today')
       fig <- layout(fig,
                     shapes = list(
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
+                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases)), 
+                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases)),
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
-                           yref = "y"),
-                      list(type = "line",
-                           x0 = today(), x1 = today(), xref = "x",
-                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases_sim)), 
-                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases_sim)),
-                           yref = "y",
-                           line = list(color = 'grey', dash = 'dash'),
-                           name = 'Today'
-                      )
+                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases)), 
+                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases)),
+                           yref = "y")
+                      # list(type = "line",
+                      #      x0 = today(), x1 = today(), xref = "x",
+                      #      y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases)), 
+                      #      y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases)),
+                      #      yref = "y",
+                      #      line = list(color = 'grey', dash = 'dash'),
+                      #      name = 'Today'
+                      #)
                       ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
+      fig <- fig  %>% add_trace(x = today(), type = 'scatter', mode = 'lines',
+                                line = list(color = 'grey', dash = 'dash'), name = 'Today')
       return(fig)
     }
   })
@@ -1600,12 +1607,15 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
+                           y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations)), 
+                           y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations)), 
+                           y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
@@ -1652,16 +1662,22 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
+                           y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU)), 
+                           y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU)), 
+                           y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
   })
+  
+  
+  
   ##--Deaths----
   output$fig_district4 <- renderPlotly({
     
@@ -1705,19 +1721,23 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
+                           y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death)), 
+                           y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death)), 
+                           y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
   })
   
+
   
-  ##--Plots TA------------------
+  ##--5.10 Plots TA------------------
   
   ##--Title
   output$plot_ta_title <- renderText({
@@ -1774,16 +1794,20 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), 
+                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases)), 
+                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Cases_sq), y1 = max(data_final_plot$Cases_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$Cases_sq), min(data_final_plot$Cases)), 
+                           y1 = max(max(data_final_plot$Cases_sq), max(data_final_plot$Cases)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
   })
+  
   ##--Hospitalizations
   output$fig_ta2 <- renderPlotly({
     req(input$district2, input$ta)
@@ -1827,16 +1851,23 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), 
+                           y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations)), 
+                           y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Hospitalizations_sq), y1 = max(data_final_plot$Hospitalizations_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$Hospitalizations_sq), min(data_final_plot$Hospitalizations)), 
+                           y1 = max(max(data_final_plot$Hospitalizations_sq), max(data_final_plot$Hospitalizations)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)} 
   })
+  
+  
+  
+  ##--ICU
   ##--ICU
   output$fig_ta3 <- renderPlotly({
     req(input$district2, input$ta)
@@ -1880,16 +1911,20 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), 
+                           y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU)), 
+                           y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU)), 
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$ICU_sq), y1 = max(data_final_plot$ICU_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$ICU_sq), min(data_final_plot$ICU)), 
+                           y1 = max(max(data_final_plot$ICU_sq), max(data_final_plot$ICU)), 
+                           yref = "y")))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
   })
+  
   
   ##--Death
   output$fig_ta4 <- renderPlotly({
@@ -1937,12 +1972,16 @@ server <- function(input, output, session){
                       list(type = "rect",
                            fillcolor = "blue", line = list(color = "blue"), opacity = 0.1,
                            x0 = x_start, x1 = x_stops, xref = "x",
-                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), 
+                           y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death)), 
+                           y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death)),
                            yref = "y"),
                       list(type = "rect",
                            fillcolor = "red", line = list(color = "red"), opacity = 0.1,
                            x0 = x_start_distancing, x1 = x_stops_distancing, xref = "x",
-                           y0 = min(data_final_plot$Death_sq), y1 = max(data_final_plot$Death_sq), yref = "y")))%>% 
+                           y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death)), 
+                           y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death)),
+                           yref = "y")
+                      ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
@@ -2848,7 +2887,7 @@ server <- function(input, output, session){
     result <- input$mask_perc <= 100 & input$mask_perc >=0
     shinyFeedback::feedbackWarning(
       "mask_perc", !result, 
-      "Please select a number  ≥ 0 and ≤ 100"
+      "Please select a value  ≥ 0 and ≤ 100"
     )
     req(result)
     input$mask_perc
@@ -2856,6 +2895,20 @@ server <- function(input, output, session){
   
   output$warning_masking <- renderText(paste0("Selected: ", warning_masking()))
   
+  #-- Length of intervention
+  #time_intervention_dist
+  warning_dist_days <- reactive({
+    result <- input$time_intervention_dist <= input$projection
+    shinyFeedback::feedbackWarning(
+      "time_intervention_dist", !result,
+      paste0("Please select a value ≤ ", "End of Model ", "selection")
+    )
+    req(result)
+    input$time_intervention_dist
+  })
+
+  output$warning_dist_days <- renderText(paste0("Selected: ", warning_dist_days()))
+    
   ##--For distancing %
   
   warning_distancing <- reactive({
@@ -2869,6 +2922,21 @@ server <- function(input, output, session){
   })
   
   output$warning_distancing <- renderText(paste0("Selected: ", warning_distancing()))
+  
+  
+  #-- Length of intervention
+  #time_intervention_dist
+  warning_mask_days <- reactive({
+    result <- input$time_intervention_mask <= input$projection
+    shinyFeedback::feedbackWarning(
+      "time_intervention_mask", !result,
+      paste0("Please select a value ≤ ", "End of Model ", "selection")
+    )
+    req(result)
+    input$time_intervention_mask
+  })
+  
+  output$warning_mask_days <- renderText(paste0("Selected: ", warning_mask_days()))
   
   ##--District Level Observe-------------
   districtObs <- observe({
