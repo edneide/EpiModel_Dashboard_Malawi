@@ -266,7 +266,7 @@ body <- dashboardBody(
                                                   hospitalizations, ICU stays and deaths based on user-defined, policy parameters.")),
                             h1("Policy levers"),
                             tags$ul(
-                              img(src='policy_levers2.png', align = "center", height = "50%",
+                              img(src='policy_levers.png', align = "center", height = "50%",
                                   width = "50%")),
                             tags$div(
                               tags$ul(
@@ -294,6 +294,9 @@ body <- dashboardBody(
                                          visualized on the x-axis. The number of days is capped so that the user can look back as far as the onset 
                                          of the pandemic in Malawi (i.e., April 1, 2020). See below:"))
                               ),
+                            tags$ul(
+                              img(src='display_options.png', align = "center", height = "50%",
+                                  width = "50%")),
                             ##--Fixed Model parameters
                             h1("Fixed model parameters"),
                             
@@ -312,7 +315,7 @@ body <- dashboardBody(
                                               hospitalizations, ICU stays and deaths from the baseline to
                                               the user-defined simulation. See below:"))),
                             tags$ul(
-                              img(src="reduction_widgets.png", align = "center", height = "80%", width = "80%")
+                              img(src="widgets.png", align = "center", height = "80%", width = "80%")
                             ),
                             tags$ul(tags$p(h4(strong("2. 4 Line Plots - "), "to depict cases, hospitalizations, 
                             ICU stays and deaths (across the user defined time period) for the baseline simulation and for 
@@ -333,7 +336,7 @@ body <- dashboardBody(
                               tags$p(h4(strong("c.	User-defined simulation –"), "Cumulative values up until the user-defined time horizon based on the user-defined policy lever selections"))
                             ), 
                             br(),
-                            tags$p(h4("* *Various functionalities are included that allow the user to select 
+                            tags$p(h4("*Various functionalities are included that allow the user to select 
                                       the number of entries shown on the initial interface of the table and to export
                                       to CSV or Excel. Note that this table displays the sub-level of data immediately
                                       following the user-defined level of interest, in order to offer a more detailed 
