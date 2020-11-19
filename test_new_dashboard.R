@@ -446,7 +446,7 @@ server <- function(input, output, session){
   restrictionsInput <- observe({
     if(input$runreportButton == 0) return()
     
-    masking_new <- masking %>% 
+    masking_new <- masking[1:n_days,] %>% 
       mutate(
         masking_compliance2 = ifelse(date <= today(), masking_compliance,
                                      ifelse(between(date, today()+1, today() + days(input$time_intervention_mask)),
@@ -456,7 +456,7 @@ server <- function(input, output, session){
     write.csv(data.frame(masking_compliance = masking_new$masking_compliance2),
               "inputs/masking/masking_compliance_new.csv", row.names = FALSE)
     ##-----###
-    current <- current %>% 
+    current <- current[1:n_days,] %>% 
       mutate(reduc_new = ifelse(date <= today(), reduc, 
                                 ifelse(between(date, today(), today() +
                                                  days(input$time_intervention_dist)),
