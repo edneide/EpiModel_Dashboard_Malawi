@@ -5,9 +5,9 @@ account: edneide-ramalho
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3220395
-bundleId: 3856847
+bundleId: 3876054
 url: https://edneide-ramalho.shinyapps.io/EpiModel_Dashboard_Malawi/
-when: 1605280218.47167
+when: 1605706452.78963
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: stepwise_dashboard_version_2.R|stepwise_dashboard_version3.R|stepwise_dashboard_version4.R|stepwise_dashboard_version5.R|stepwise_dashboard_version6.R|stepwise_dashboard_version7.R|stepwise_dashboard_version8.R|version7.R
+ignoredFiles: stepwise_dashboard_version8.R

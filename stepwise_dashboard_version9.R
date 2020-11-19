@@ -1,8 +1,9 @@
 ##------------------------------------------------##
+##--steppwise_dashboard_version9------------------##
 ##--Updated version: 18 November, 2020------------##
-##--In this version, the model run for 730 days--##
-##--It increases the execution time--------------##
-##-----------------------------------------------##
+##--In this version, the model run for 730 days---##
+##--It increases the execution time---------------##
+##------------------------------------------------##
 
 ##--Libraries----
 library(shinydashboard)
@@ -74,9 +75,9 @@ body <- dashboardBody(
                      uiOutput("national_title"),
                      uiOutput("district_title"),
                      uiOutput("ta_title"),
-                     ),
+              ),
               br(),
-
+              
               column(width = 7, 
                      ##--Widgets UI------------
                      uiOutput("widgets_national"),
@@ -189,7 +190,7 @@ body <- dashboardBody(
                                      ##--Level of interest 
                                      selectInput('level', 'Please select the level of interest',
                                                  choices = c("National", "District", "TA")),
-                                    
+                                     
                               ),
                               column(width = 4,
                                      ##
@@ -197,9 +198,9 @@ body <- dashboardBody(
                                      uiOutput("district_ui2"),
                                      uiOutput("ta_ui")
                                      ##
-                                     )
-                             
                               )
+                              
+                       )
                      ),
                      ##--Fixed parameters
                      fluidRow(column(width = 12,
@@ -233,7 +234,7 @@ body <- dashboardBody(
                      ),
               )
             ),#--end of fluid row
- 
+            
             fluidRow(
               column(width = 11, offset = 0.75,
                      ##
@@ -296,11 +297,11 @@ body <- dashboardBody(
                                          em("Note that if either district or TA is selected, 
                                          an additional dropdown will appear requiring the user to subsequently select a specific district or TA 
                                          to generate results for"),")"
-                                         )),
+                              )),
                               tags$li(h4(strong("Start of Model - "), "Slider to select the number of days prior to today (i.e., Day 1 of simulation) 
                                          visualized on the x-axis. The number of days is capped so that the user can look back as far as the onset 
                                          of the pandemic in Malawi (i.e., April 1, 2020). See below:"))
-                              ),
+                            ),
                             tags$ul(
                               img(src='display_options.png', align = "center", height = "50%",
                                   width = "50%")),
@@ -383,32 +384,32 @@ body <- dashboardBody(
                                       strong("deSolve"), ",",
                                       "and",
                                       strong("ggplot2."), 
-                                   "The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "and", strong("shinydashboard"), "libraries, other additional libraries 
+                                      "The graphical user interface for the dynamic web-based dashboard is programmed using freely available open source RShiny dashboards. Besides the", strong("Shiny"), "and", strong("shinydashboard"), "libraries, other additional libraries 
                                     were used to organize the model outputs and present the visualizations on the final app, 
                                     such as")),
-                                   
-                                   tags$ul(
-                                     tags$li(h4("shinyFeedback")),
-                                     tags$li(h4("shinythemes")),
-                                     tags$li(h4("shinyWidgets")),
-                                     tags$li(h4("readr")),
-                                     tags$li(h4("plotly")),
-                                     tags$li(h4("DT")),
-                                     tags$li(h4("lubridate")),
-                                     tags$li(h4("tidyverse")),
-                                     tags$li(h4("scales")),
-                                     tags$li(h4("htmlwidgets")),
-                                     tags$li(h4("jsonlite")),
-                                   ),
+                            
+                            tags$ul(
+                              tags$li(h4("shinyFeedback")),
+                              tags$li(h4("shinythemes")),
+                              tags$li(h4("shinyWidgets")),
+                              tags$li(h4("readr")),
+                              tags$li(h4("plotly")),
+                              tags$li(h4("DT")),
+                              tags$li(h4("lubridate")),
+                              tags$li(h4("tidyverse")),
+                              tags$li(h4("scales")),
+                              tags$li(h4("htmlwidgets")),
+                              tags$li(h4("jsonlite")),
+                            ),
                             br(),
                             tags$p(h4("For user instructions and explanations of the dashboard’s interface, please refer to the", 
-                                       strong("“User guide”"), "tab.")),
+                                      strong("“User guide”"), "tab.")),
                             br(),
                             br(),
                             tags$p(h4(strong("The code for this epidemiological dashboard can be found in the following link:",
                                              tags$a(href = "https://github.com/edneide/EpiModel_Dashboard_Malawi", "GitHub.")))
                             )
-
+                            
                             
             )##--end of column
             )##--end of fluid row
@@ -459,11 +460,11 @@ server <- function(input, output, session){
   ##----------------------##
   district_choices <- reactiveVal(districts_names$districts)
   
- ##--5.3 End of Model---- 
+  ##--5.3 End of Model---- 
   end_of_model <- eventReactive(
     input$runreportButton,
     {input$projection}
-    )
+  )
   
   ##--5. 4 UI for length of masking intervention----
   output$masking_intervention <- renderUI({
@@ -485,7 +486,7 @@ server <- function(input, output, session){
                  max = input$projection)
   })
   
- 
+  
   
   
   
@@ -1101,7 +1102,7 @@ server <- function(input, output, session){
   
   
   
- 
+  
   ##--5.8 Plots National--------------
   
   #--Title National--
@@ -1197,7 +1198,7 @@ server <- function(input, output, session){
                       #      line = list(color = 'grey', dash = 'dash'),
                       #      text = 'Today'
                       #      )
-                      )) %>% 
+                    )) %>% 
         config(displayModeBar = F)
       
       
@@ -1298,7 +1299,7 @@ server <- function(input, output, session){
                       #      line = list(color = 'grey', dash = 'dash'),
                       #      name = 'Today'
                       # )
-                      ))%>% 
+                    ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
@@ -1389,7 +1390,7 @@ server <- function(input, output, session){
                       #      line = list(color = 'grey', dash = 'dash'),
                       #      name = 'Today'
                       # )
-                      ))%>% 
+                    ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
@@ -1480,7 +1481,7 @@ server <- function(input, output, session){
                       #      line = list(color = 'grey', dash = 'dash'),
                       #      name = 'Today'
                       # )
-                      ))%>% 
+                    ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)
@@ -1557,7 +1558,7 @@ server <- function(input, output, session){
                       #      line = list(color = 'grey', dash = 'dash'),
                       #      name = 'Today'
                       #)
-                      ))%>% 
+                    ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       fig <- fig  %>% add_trace(x = today(), type = 'scatter', mode = 'lines',
@@ -1735,7 +1736,7 @@ server <- function(input, output, session){
       return(fig)}
   })
   
-
+  
   
   ##--5.10 Plots TA------------------
   
@@ -1981,7 +1982,7 @@ server <- function(input, output, session){
                            y0 = min(min(data_final_plot$Death_sq), min(data_final_plot$Death)), 
                            y1 = max(max(data_final_plot$Death_sq), max(data_final_plot$Death)),
                            yref = "y")
-                      ))%>% 
+                    ))%>% 
         config(displayModeBar = F)
       fig <- fig %>% layout(legend = list(orientation = 'h'))
       return(fig)}
@@ -2615,7 +2616,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_icu_national(), 
-                       format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)"), style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", reduc_icu_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in ICU', '(National)')
         , icon = icon("hospital")
         , color = "red"
@@ -2635,7 +2636,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_death_national(), 
-                       format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)"), style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", reduc_death_national_perc(), "%)"), style = "font-size: 80%;")
         , paste('Reduction in Deaths', '(National)')
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2673,7 +2674,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_cases_districts(), format = "d", big.mark = ','), " (", 
-               reduc_cases_districts_perc(), "%)"), style = "font-size: 80%;")
+                      reduc_cases_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Cases', " (", input$district, ")")
         , icon = icon("virus")
         , color = "green"
@@ -2694,7 +2695,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_hosp_districts(), format = "d", big.mark = ','), " (", 
-               reduc_hosp_districts_perc(), "%)"), style = "font-size: 80%;")
+                      reduc_hosp_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Hospitalizations', " (", input$district, ")")
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2715,8 +2716,8 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_icu_districts(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_icu_districts_perc(), "%)"), style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", 
+                      reduc_icu_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in ICU', " (", input$district, ")")
         , icon = icon("hospital")
         , color = "red"
@@ -2736,8 +2737,8 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_death_districts(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_death_districts_perc(), "%)"), style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", 
+                      reduc_death_districts_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Deaths', " (", input$district, ")")
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2777,7 +2778,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_cases_ta(), format = "d", big.mark = ','), " (", 
-               reduc_cases_ta_perc(), "%)"), style = "font-size: 80%;")
+                      reduc_cases_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Cases', " (", input$ta, ")")
         , icon = icon("virus")
         , color = "green"
@@ -2799,7 +2800,7 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_hosp_ta(), format = "d", big.mark = ','), " (", 
-               reduc_hosp_ta_perc(), "%)"), style = "font-size: 80%;")
+                      reduc_hosp_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Hospitalizations', " (", input$ta, ")")
         , icon = icon("hospital-user")
         , color = "orange"
@@ -2821,8 +2822,8 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_icu_ta(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_icu_ta_perc(), "%)"),style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", 
+                      reduc_icu_ta_perc(), "%)"),style = "font-size: 80%;")
         , paste0('Reduction in ICU', " (", input$ta, ")")
         , icon = icon("hospital")
         , color = "red"
@@ -2843,8 +2844,8 @@ server <- function(input, output, session){
     }else{
       valueBox(
         tags$p(paste0(formatC(reduc_death_ta(), 
-                       format = "d", big.mark = ','), " (", 
-               reduc_death_ta_perc(), "%)"), style = "font-size: 80%;")
+                              format = "d", big.mark = ','), " (", 
+                      reduc_death_ta_perc(), "%)"), style = "font-size: 80%;")
         , paste0('Reduction in Deaths', " (", input$ta, ")")
         , icon = icon("stats", lib = 'glyphicon')
         , color = "black"
@@ -2906,9 +2907,9 @@ server <- function(input, output, session){
     req(result)
     input$time_intervention_dist
   })
-
+  
   output$warning_dist_days <- renderText(paste0("Selected: ", warning_dist_days()))
-    
+  
   ##--For distancing %
   
   warning_distancing <- reactive({
@@ -3090,10 +3091,10 @@ server <- function(input, output, session){
       output$print_national_table_title <- renderUI({div(textOutput("national_table_title"), style = "font-size:25px")})
       output$widgets_national <- renderUI({
         fluidRow(
-                 valueBoxOutput("cases", width = 3),
-                 valueBoxOutput("hosp", width = 3),
-                 valueBoxOutput("icu", width = 3),
-                 valueBoxOutput("death", width = 3)
+          valueBoxOutput("cases", width = 3),
+          valueBoxOutput("hosp", width = 3),
+          valueBoxOutput("icu", width = 3),
+          valueBoxOutput("death", width = 3)
         )
       })
     }
