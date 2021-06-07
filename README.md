@@ -4,19 +4,31 @@ This is a **Shiny application** for a COVID-19 epidemiological model for Malawi.
 
 This application was build in R (version 3.6.3) with the RStudio IDE (version Version 1.4.869). Besides the **shiny** library, other additional libraries were used to organize the model outputs and present the visualizations on the final app, such as:
 
-- library(shinydashboard)
-- library(shiny)
-- library(shinyFeedback)
-- library(shinythemes)
-- library(shinyWidgets)
-- library(readr)
-- library(plotly)
-- library(DT)
-- library(lubridate)
-- library(tidyverse)
-- library(scales)
-- library(htmlwidgets)
-- library(jsonlite)
+`library(shinydashboard)`
+
+`library(shiny)`
+
+`library(shinyFeedback)`
+
+`library(shinythemes)`
+
+`library(shinyWidgets)`
+
+`library(readr)`
+
+`library(plotly)`
+
+`library(DT)`
+
+`library(lubridate)`
+
+`library(tidyverse)`
+
+`library(scales)`
+
+`library(htmlwidgets)`
+
+`library(jsonlite)`
 
 
 ## Policy Levers
